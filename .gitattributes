@@ -1,0 +1,4 @@
+# text=auto: Git erkennt Textdateien automatisch und speichert sie im Repo
+# einheitlich mit LF-Zeilenenden; beim Auschecken bekommt jedes System seine
+# native Form (Windows: CRLF). Binaerdateien (z. B. .mwb) bleiben unberuehrt.
+* text=auto
