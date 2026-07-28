@@ -9,3 +9,6 @@ out/
 # Betriebssystem
 Thumbs.db
 .DS_Store
+
+#env-datei vertrauliche Informationen
+config.properties
