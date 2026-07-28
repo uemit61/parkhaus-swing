@@ -1,7 +1,13 @@
 package model;
 
 
-
+/**
+ * Eine Etage der Tabelle {@code parketage} mit ihrer Anzahl an Stellplätzen.
+ *
+ * @author      Ümit Yildirim <hopes61@icloud.com>
+ * @copyright   Copyright (c) 2024-2026 Ümit Yildirim. Alle Rechte vorbehalten.
+ * @license     Diese Datei darf nicht ohne Zustimmung des Autors weitergegeben oder verändert werden.
+ */
 public class Parketage
 {
     private PropertyChangeHandle pch;
@@ -36,6 +42,13 @@ public class Parketage
         this.anzahlPlaetze = anzahlPlaetze;
     }
 
+    /**
+     * Reicht die gemeinsam genutzten Objekte nach, die der Composition Root in
+     * {@code MainGarage} erzeugt.
+     *
+     * @param myCon Zugang zur Datenbank
+     * @param pch   Kanal für Meldungen an die View
+     */
     public void inits(MyConnection myCon,PropertyChangeHandle pch)
     {
         this.myCon = myCon;
@@ -43,6 +56,10 @@ public class Parketage
 
     }
 
+    /**
+     * Berechnet die freien Plätze als Summe aller Etagen-Kapazitäten abzüglich der
+     * belegten Plätze und meldet das Ergebnis über "Frei" an die View.
+     */
     public void freiePlaetze()
     {
         int  frei= myCon.queryList("Select (select sum(anzahlPlaetze) from parketage ), (select count(*) from garage);",rs->rs.getInt(1) - rs.getInt(2)).getFirst();

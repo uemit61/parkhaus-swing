@@ -9,14 +9,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Ümit Yildirim <hopes61@icloud.com>
- * @copyright Copyright (c) 2024-2026 Ümit Yildirim. Alle Rechte vorbehalten.
- * @license Diese Datei darf nicht ohne Zustimmung des Autors weitergegeben oder verändert werden.
+ * Kapselt den Zugriff auf die MySQL-Datenbank. Jede Methode öffnet ihre eigene
+ * Verbindung und schließt sie über try-with-resources wieder; die Klasse hält
+ * deshalb keinen Verbindungszustand.
+ *
+ * @author      Ümit Yildirim <hopes61@icloud.com>
+ * @copyright   Copyright (c) 2024-2026 Ümit Yildirim. Alle Rechte vorbehalten.
+ * @license     Diese Datei darf nicht ohne Zustimmung des Autors weitergegeben oder verändert werden.
  */
 public class MyConnection
 {
     private String url, username, password;
 
+    /**
+     * Merkt sich die Zugangsdaten, mit denen später jede Verbindung aufgebaut wird.
+     * Die Werte stammen aus der {@code config.properties}, die {@code MainGarage}
+     * beim Start einliest.
+     *
+     * @param url      JDBC-URL der Datenbank, zum Beispiel
+     *                 {@code jdbc:mysql://localhost:3306/parkhaus}
+     * @param username Benutzername für die Anmeldung
+     * @param password Passwort für die Anmeldung
+     */
     public MyConnection(String url, String username, String password)
     {
         this.url = url;
@@ -24,6 +38,12 @@ public class MyConnection
         this.password = password;
     }
 
+    /**
+     * Baut eine neue Verbindung zur Datenbank auf.
+     *
+     * @return die geöffnete Verbindung, oder {@code null}, wenn der Aufbau
+     *         fehlgeschlagen ist
+     */
     public Connection getConnection()
     {
         Connection connector = null;
@@ -38,6 +58,13 @@ public class MyConnection
         return connector;
     }
 
+    /**
+     * Führt ein INSERT, UPDATE oder DELETE aus.
+     *
+     * @param query das vollständige SQL-Statement
+     * @return Anzahl der betroffenen Zeilen; 0, wenn nichts geändert wurde oder das
+     *         Statement fehlgeschlagen ist
+     */
     public int executeUpdate(String query)
     {
         int retVal =0;
@@ -55,6 +82,19 @@ public class MyConnection
         return retVal;
     }
 
+    /**
+     * Führt eine Abfrage aus und wandelt jede Ergebniszeile mit dem übergebenen
+     * Mapper in ein Objekt um.
+     *
+     * <p>Das ResultSet wird vollständig innerhalb dieser Methode verarbeitet und
+     * geschlossen — es verlässt die Model-Schicht nicht.
+     *
+     * @param <T>    Typ der Objekte, die der Mapper erzeugt
+     * @param query  das vollständige SQL-SELECT
+     * @param mapper wandelt eine einzelne Zeile in ein Objekt um
+     * @return Liste der umgewandelten Zeilen; leer, wenn die Abfrage nichts
+     *         geliefert hat oder fehlgeschlagen ist
+     */
     public <T> List<T> queryList(String query,RowMapper<T> mapper)
     {
         List<T> retVal = new ArrayList<>();

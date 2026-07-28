@@ -5,7 +5,14 @@ package model;
 
 import java.util.List;
 
-
+/**
+ * Ein belegter Parkplatz der Tabelle {@code garage} samt der Fachlogik für Ein-
+ * und Ausfahrt.
+ *
+ * @author      Ümit Yildirim <hopes61@icloud.com>
+ * @copyright   Copyright (c) 2024-2026 Ümit Yildirim. Alle Rechte vorbehalten.
+ * @license     Diese Datei darf nicht ohne Zustimmung des Autors weitergegeben oder verändert werden.
+ */
 public class Garage
 {
 
@@ -58,6 +65,15 @@ public class Garage
         this.fahrzeug_nummernschild = fahrzeug_nummernschild;
     }
 
+    /**
+     * Reicht die gemeinsam genutzten Objekte nach, die der Composition Root in
+     * {@code MainGarage} erzeugt.
+     *
+     * @param myCon    Zugang zur Datenbank
+     * @param pch      Kanal für Meldungen an die View
+     * @param fahrzeug das Fahrzeug-Model; Garage nutzt es für die Kennzeichen-
+     *                 prüfung und die Registrierung, statt beides zu duplizieren
+     */
     public void inits(MyConnection myCon, PropertyChangeHandle pch, Fahrzeug fahrzeug)
     {
         this.myCon = myCon;
@@ -67,11 +83,14 @@ public class Garage
 
 
     /**
-     * Handelt es sich um ein richtiges Kennzeichen, wird geprüft, ob sich das
-     * Fahrzeug im Parkhaus befindet.
+     * Prüft, ob das Fahrzeug noch nicht im Parkhaus steht.
      *
-     * @param nummernschild Das Kennzeichen
-     * @return boolean Falls nicht im Parkhaus wird true zurückgegeben.
+     * <p>Steht dasselbe Kennzeichen bereits drin, kann es kein zweites Mal
+     * einfahren — eines von beiden ist gefälscht. In dem Fall geht "Alarm" an die
+     * View.
+     *
+     * @param nummernschild das Kennzeichen
+     * @return {@code true}, wenn das Fahrzeug einfahren darf
      */
     public boolean check(String nummernschild)
     {
@@ -85,6 +104,19 @@ public class Garage
             pch.propertyChange("Alarm",null);
         return retVal;
     }
+
+    /**
+     * Lässt ein Fahrzeug einfahren: prüft das Kennzeichen, registriert das Fahrzeug
+     * falls nötig, sucht den kleinsten freien Platz und weist ihn zu.
+     *
+     * <p>Die Etage steht nicht im Code: die Kapazitäten aus {@code parketage} werden
+     * der Reihe nach aufsummiert, bis die gesuchte Platznummer hineinfällt. Reicht
+     * die Summe aller Etagen nicht, ist das Parkhaus voll und es wird nichts
+     * eingetragen.
+     *
+     * @param nummernschild Kennzeichen des einfahrenden Fahrzeugs
+     * @param typ           Fahrzeugtyp aus der Auswahlliste der Oberfläche
+     */
     public void befahren(String nummernschild, String typ)
     {
 
@@ -135,8 +167,13 @@ public class Garage
 
     }
 
-
-
+    /**
+     * Bucht ein Fahrzeug aus und gibt seinen Parkplatz frei. Ob das Fahrzeug
+     * überhaupt im Parkhaus stand, verrät die Anzahl der gelöschten Zeilen — eine
+     * eigene Abfrage vorher erübrigt sich dadurch.
+     *
+     * @param nummernschild Kennzeichen des ausfahrenden Fahrzeugs
+     */
     public void verlassen(String nummernschild)
     {
         if(fahrzeug.checkNummernschild(nummernschild))
@@ -151,6 +188,13 @@ public class Garage
 
     }
 
+    /**
+     * Sucht Etage und Platznummer eines Fahrzeugs und meldet beides über "ZeigePos"
+     * an die View. Steht das Fahrzeug nicht im Parkhaus, geht stattdessen "Fail"
+     * hinaus.
+     *
+     * @param nummernschild das gesuchte Kennzeichen
+     */
     public void zeigePostion(String nummernschild)
     {
         if (fahrzeug.checkNummernschild(nummernschild))
@@ -176,6 +220,10 @@ public class Garage
 
     }
 
+    /**
+     * Liest alle belegten Parkplätze und schickt sie als Liste an die View, die
+     * daraus ihre Tabelle füllt.
+     */
     public void parkplatzTabelle()
     {
         List<Garage> liste_Garage = myCon.queryList
