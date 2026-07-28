@@ -1,6 +1,5 @@
 package view;
 
-import model.Fahrzeug;
 import model.Garage;
 
 import javax.swing.table.AbstractTableModel;
@@ -8,6 +7,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+/**
+ * Füllt die Parkplatztabelle direkt aus einer Liste von {@link Garage}-Objekten,
+ * ohne den Umweg über Object-Arrays wie beim DefaultTableModel.
+ *
+ * @author      Ümit Yildirim <hopes61@icloud.com>
+ * @copyright   Copyright (c) 2024-2026 Ümit Yildirim. Alle Rechte vorbehalten.
+ * @license     Diese Datei darf nicht ohne Zustimmung des Autors weitergegeben oder verändert werden.
+ */
 public class GarageTableModel extends AbstractTableModel
 {
     private List<Garage> garageList;
@@ -18,6 +25,12 @@ public class GarageTableModel extends AbstractTableModel
         this.garageList = garageList;
     }
 
+    /**
+     * Tauscht die angezeigte Liste aus und meldet der Tabelle, dass sie sich neu
+     * zeichnen soll.
+     *
+     * @param neueListe die belegten Parkplätze, die ab jetzt angezeigt werden
+     */
     public void updateTable(List<Garage> neueListe)
     {
         this.garageList = neueListe;
@@ -36,6 +49,19 @@ public class GarageTableModel extends AbstractTableModel
         return columnNames.length;
     }
 
+    /**
+     * Liefert den Wert einer Zelle.
+     *
+     * <p>Statt die Spalten einzeln abzufragen, wird aus dem Spaltennamen der Name
+     * des passenden Getters gebaut — aus "platzNr" wird "getPlatzNr" — und dieser per
+     * Reflection aufgerufen. Eine zusätzliche Spalte braucht deshalb nur einen
+     * weiteren Eintrag in {@code columnNames}.
+     *
+     * @param rowIndex    Zeile, entspricht der Position in der Liste
+     * @param columnIndex Spalte, entspricht der Position in {@code columnNames}
+     * @return Wert der Zelle, oder {@code null}, wenn zum Spaltennamen kein Getter
+     *         existiert
+     */
     @Override
     public Object getValueAt(int rowIndex, int columnIndex)
     {

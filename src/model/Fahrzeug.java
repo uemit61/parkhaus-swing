@@ -5,6 +5,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Ein Fahrzeug der Tabelle {@code fahrzeug} samt der zugehörigen Fachlogik:
+ * Registrieren, Löschen und Prüfen des Kennzeichens.
+ *
+ * @author      Ümit Yildirim <hopes61@icloud.com>
+ * @copyright   Copyright (c) 2024-2026 Ümit Yildirim. Alle Rechte vorbehalten.
+ * @license     Diese Datei darf nicht ohne Zustimmung des Autors weitergegeben oder verändert werden.
+ */
 public class Fahrzeug
 {
 
@@ -43,12 +51,32 @@ public class Fahrzeug
         this.typ = typ;
     }
 
+    /**
+     * Reicht die gemeinsam genutzten Objekte nach, die der Composition Root in
+     * {@code MainGarage} erzeugt.
+     *
+     * @param myCon Zugang zur Datenbank
+     * @param pch   Kanal für Meldungen an die View
+     */
     public void inits(MyConnection myCon,PropertyChangeHandle pch)
     {
         this.myCon = myCon;
         this.pch = pch;
     }
 
+    /**
+     * Trägt ein Fahrzeug in die Datenbank ein.
+     *
+     * <p>Steht das Kennzeichen bereits in der Tabelle, wird nichts eingefügt und
+     * die View über "Vorhanden" benachrichtigt.
+     *
+     * @param nummernschild das Kennzeichen; wird in Großbuchstaben gespeichert
+     * @param typ           Fahrzeugtyp, zum Beispiel "Auto"
+     * @param admin         {@code true} für den Aufruf aus dem Adminbereich, wo der
+     *                      Benutzer eine Bestätigung erwartet; bei der Einfahrt
+     *                      wird still registriert
+     * @return {@code true}, wenn das Fahrzeug neu eingetragen wurde
+     */
     public boolean fahrzeugRegistrieren(String nummernschild, String typ, boolean admin)
     {
         boolean retVal = false;
@@ -76,6 +104,15 @@ public class Fahrzeug
         return retVal;
     }
 
+    /**
+     * Prüft das Kennzeichen gegen das deutsche Format: ein bis drei Buchstaben,
+     * Bindestrich, ein bis zwei Buchstaben, Leerzeichen, zwei bis fünf Ziffern ohne
+     * führende Null. Passt es nicht, geht "FailCheck" an die View.
+     *
+     * @param nummernschild die Eingabe des Benutzers; Groß- und Kleinschreibung
+     *                      spielt keine Rolle
+     * @return {@code true}, wenn das Format stimmt
+     */
     public boolean checkNummernschild(String nummernschild)
     {
         boolean retVal = false;
@@ -90,6 +127,17 @@ public class Fahrzeug
 
         return retVal;
     }
+
+    /**
+     * Löscht ein Fahrzeug aus der Tabelle, sofern es nicht gerade im Parkhaus steht.
+     *
+     * <p>Ein geparktes Fahrzeug wird bewusst nicht gelöscht — sein Parkplatz würde
+     * mitverschwinden — und meldet stattdessen "Verboten" an die View. Die
+     * Datenbank verhindert denselben Fall über {@code ON DELETE RESTRICT}.
+     *
+     * @param nummernschild Kennzeichen des zu löschenden Fahrzeugs
+     * @param typ           Fahrzeugtyp; wird nur für die Rückmeldung gebraucht
+     */
     public void loescheFahrzeug(String nummernschild, String typ)
     {
             if (!nummernschild.equals("") && checkNummernschild(nummernschild))
@@ -125,6 +173,10 @@ public class Fahrzeug
             }
     }
 
+    /**
+     * Liest alle registrierten Fahrzeuge und schickt sie als Liste an die View, die
+     * daraus ihre Tabelle füllt.
+     */
     public void autoTabelle()
     {
         List<Fahrzeug> liste_Fahrzeug = myCon.queryList
