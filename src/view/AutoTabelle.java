@@ -5,16 +5,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
+
 
 import controller.Controller;
+import model.Fahrzeug;
 
 /**
  * @author      Ümit Yildirim <hopes61@icloud.com>
@@ -28,7 +30,7 @@ public class AutoTabelle extends JPanel implements PropertyChangeListener
 	private Controller controller = null;
 	private JButton btnZuruck;
 	private JTable table;
-	private DefaultTableModel dtm = null, tempDtm;
+	private FahrzeugTableModel fahrzeugTableModel;
 
 	public void addProperty()
 	{
@@ -61,47 +63,21 @@ public class AutoTabelle extends JPanel implements PropertyChangeListener
 		add(scrollPane);
 		
 		table = new JTable();
+		fahrzeugTableModel = new FahrzeugTableModel(new ArrayList<>());
+		table.setModel(fahrzeugTableModel);
 		scrollPane.setViewportView(table);
 	}
 
 	private void btnZuruckActionPerformed(ActionEvent e) 
 	{
-		table.setModel(new DefaultTableModel());
 		controller.propertyChange("ZuruckAdmin");
 	}
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) 
 	{
-		ResultSet rs = (ResultSet) evt.getNewValue();
-		dtm = (DefaultTableModel) table.getModel();
-		
-		try 
-		{
-			int column = rs.getMetaData().getColumnCount(); // Anzahl der Spalten bei 1 beginnen
-			
-			String[] columName = new String[column];
-			
-			columName[0] = "Nummernschild";
-			columName[1] = "Typ";
-			
-			
-			dtm.setColumnIdentifiers(columName);
-			
-			while(rs.next())
-			{
-				Object[] rowData = new Object[column];
-				for (int i = 0; i < rowData.length; i++) 
-				{
-					rowData[i] = rs.getObject(i+1);
-				}
-				dtm.addRow(rowData);
-			}
-		} 
-		catch (SQLException e) 
-		{
-			e.printStackTrace();
-		}
+		List<Fahrzeug> fahrzeugListe = (List<Fahrzeug>) evt.getNewValue();
+		fahrzeugTableModel.updateTable(fahrzeugListe);
 	}
 
 	

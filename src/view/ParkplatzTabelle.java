@@ -4,17 +4,18 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 
 import controller.Controller;
+import model.Garage;
 
 import javax.swing.JButton;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
 import java.awt.event.ActionEvent;
-import javax.swing.JTextArea;
-import javax.swing.table.DefaultTableModel;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.JScrollPane;
 
 /**
@@ -29,7 +30,7 @@ public class ParkplatzTabelle extends JPanel implements PropertyChangeListener
 	private Controller controller = null;
 	private JButton btnZuruck;
 	private JTable table;
-	private DefaultTableModel dtm = null, tempDtm;
+	private GarageTableModel garageTableModel;
 
 	public void addProperty()
 	{
@@ -62,48 +63,20 @@ public class ParkplatzTabelle extends JPanel implements PropertyChangeListener
 		add(scrollPane);
 		
 		table = new JTable();
+		garageTableModel = new GarageTableModel(new ArrayList<>());
+		table.setModel(garageTableModel);
 		scrollPane.setViewportView(table);
 	}
 
 	private void btnZuruckActionPerformed(ActionEvent e) 
 	{
-		table.setModel(new DefaultTableModel());
 		controller.propertyChange("ZuruckAdmin");
 	}
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) 
 	{
-		ResultSet rs = (ResultSet) evt.getNewValue(); // uebergebenes ResultSet
-		
-		dtm = (DefaultTableModel) table.getModel();
-		
-		try 
-		{
-			int column = rs.getMetaData().getColumnCount(); // Anzahl der Spalten bei 1 beginnen
-			
-			String[] columName = new String[column];
-			
-			columName[0] = "Nummernschild";
-			columName[1] = "Etage";
-			columName[2] = "Platz";
-			
-			
-			dtm.setColumnIdentifiers(columName);
-			
-			while(rs.next())
-			{
-				Object[] rowData = new Object[column];
-				for (int i = 0; i < rowData.length; i++) 
-				{
-					rowData[i] = rs.getObject(rowData.length-i);
-				}
-				dtm.addRow(rowData);
-			}
-		} 
-		catch (SQLException e) 
-		{
-			e.printStackTrace();
-		}
+		List<Garage> garageList = (List<Garage>) evt.getNewValue();
+		garageTableModel.updateTable(garageList);
 	}
 }
