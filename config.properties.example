@@ -1,0 +1,4 @@
+# Kopieren nach config.properties und eigene Werte eintragen
+db.url=jdbc:mysql://localhost:3306/parkhaus
+db.user=DEIN_BENUTZER
+db.password=DEIN_PASSWORT
