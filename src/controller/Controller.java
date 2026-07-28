@@ -2,7 +2,7 @@ package controller;
 
 import java.beans.PropertyChangeListener;
 
-import model.Parkhaus;
+import model.*;
 
 
 /**
@@ -12,63 +12,71 @@ import model.Parkhaus;
  */
 public class Controller 
 {
-	private Parkhaus model = null;
-	
-	public Controller(Parkhaus model)
-	{
-		this.model = model;
-	}
-	
+	private Fahrzeug modelFahrzeug = null;
+	private Parketage modelParketage = null;
+	private Garage modelGarage = null;
+	private PropertyChangeHandle pch=null;
 
-	
+	//Constructor
+	public Controller(Fahrzeug modelFahrzeug, Garage modelGarage,Parketage modelParketage,PropertyChangeHandle pch)
+	{
+		this.modelFahrzeug = modelFahrzeug;
+		this.modelParketage = modelParketage;
+		this.modelGarage = modelGarage;
+		this.pch = pch;
+	}
+
 	public void addPropertyListener(String propName, PropertyChangeListener view)
 	{
-		model.addPropertyChangeListener(propName, view);
+		pch.addPropertyChangeListener(propName, view);
 	}
 	
 	public void propertyChange(String propName)
 	{
-		model.propertyChange(propName, null);
+		pch.propertyChange(propName, null);
 	}
 	
 	public void freiePlaetze()
 	{
-		model.freiePlaetze();
+		modelParketage.freiePlaetze();
 	}
 	
 	public void befahren(String nummernschild, String typ)
 	{
-		model.befahren(nummernschild,typ);
+		modelGarage.befahren(nummernschild,typ);
+		modelParketage.freiePlaetze();
 	}
 	
 	public void verlassen(String nummernschild)
 	{
-		model.verlassen(nummernschild);
+		modelGarage.verlassen(nummernschild);
+		freiePlaetze();
 	}
 	
 	public void zeigePos(String nummernschild)
 	{
-		model.zeigePostion(nummernschild);
+		modelGarage.zeigePostion(nummernschild);
 	}
 	
 	public void fahrzeugRegistrieren(String nummernschild,String typ)
 	{
-		model.fahrzeugRegistrieren(nummernschild,typ);
+		//Propertier 'admin' sagt der Methode, dass Sie vom AdminView aufgerufen wurde
+		modelFahrzeug.fahrzeugRegistrieren(nummernschild,typ,true);
 	}
 	
 	public void loeschen(String nummernschild, String typ)
 	{
-		model.loescheFahrzeug(nummernschild, typ);
+		modelFahrzeug.loescheFahrzeug(nummernschild, typ);
 	}
 	
 	public void parkplatzTabelle()
 	{
-		model.parkplatzTabelle();
+		modelGarage.parkplatzTabelle();
 	}
 	
 	public void autoTabelle()
 	{
-		model.autoTabelle();
+		modelFahrzeug.autoTabelle();
 	}
 	
 }
