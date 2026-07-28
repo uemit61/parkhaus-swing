@@ -30,7 +30,7 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 {
 
 	private static final long serialVersionUID = 1L;
-	private JButton btnLöschen;
+	private JButton btnLoeschen;
 	private JButton btnEinfuegen;
 	private JButton btnZurueck;
 	private Controller controller =null;
@@ -44,6 +44,8 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		controller.addPropertyListener("Regist", this);
 		controller.addPropertyListener("Loeschen", this);
 		controller.addPropertyListener("LoeschenFail", this);
+		controller.addPropertyListener("Verboten", this);
+		controller.addPropertyListener("Vorhanden", this);
 	}
 
 	/**
@@ -60,7 +62,7 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
 		lblNewLabel.setBounds(252, 30, 136, 45);
-		add(lblNewLabel);
+		add(lblNewLabel); // ins JPanel
 		
 		JLabel lblNumSch = new JLabel("Nummernschild:");
 		lblNumSch.setFont(new Font("Tahoma", Font.BOLD, 14));
@@ -72,16 +74,16 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		add(numSchEingabe);
 		numSchEingabe.setColumns(10);
 		
-		btnLöschen = new JButton("Löschen");
-		btnLöschen.addActionListener(new ActionListener() {
+		btnLoeschen = new JButton("Löschen");
+		btnLoeschen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) 
 			{
-				 btnLöschenActionPerformed(e);
+				 btnLoeschenActionPerformed(e);
 			}
 		});
-		btnLöschen.setFont(new Font("Tahoma", Font.BOLD, 12));
-		btnLöschen.setBounds(490, 168, 100, 30);
-		add(btnLöschen);
+		btnLoeschen.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnLoeschen.setBounds(490, 168, 100, 30);
+		add(btnLoeschen);
 		
 		btnEinfuegen = new JButton("Einfügen");
 		btnEinfuegen.addActionListener(new ActionListener() {
@@ -121,10 +123,7 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		lblInfo.setBorder(new LineBorder(new Color(0, 0, 0), 3));
 		lblInfo.setBounds(61, 230, 529, 30);
 		add(lblInfo);
-		
-		JList list = new JList();
-		list.setBounds(322, 216, 1, 1);
-		add(list);
+
 		
 		boxTyp = new JComboBox();
 		boxTyp.setModel(new DefaultComboBoxModel(new String[] {"Auto", "Motorrad"}));
@@ -138,12 +137,16 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		add(lblNewLabel_1);
 		
 		JButton btnParplatzliste = new JButton("Parkplatztabelle");
-		btnParplatzliste.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) 
+		btnParplatzliste.addActionListener
+		(
+				new ActionListener()
+				{
+					public void actionPerformed(ActionEvent e)
 			{
-				btnParkplaetzeActionPErformed(e);
+				btnParkplaetzeActionPerformed(e);
 			}
-		});
+				}
+		);
 		btnParplatzliste.setFont(new Font("Tahoma", Font.BOLD, 12));
 		btnParplatzliste.setBounds(247, 299, 136, 30);
 		add(btnParplatzliste);
@@ -157,11 +160,13 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 	private void btnAutoTabelleActionPerformed(ActionEvent e) 
 	{
 		controller.autoTabelle();
+		lblInfo.setText("");
 	}
 
-	private void btnParkplaetzeActionPErformed(ActionEvent e) 
+	private void btnParkplaetzeActionPerformed(ActionEvent e)
 	{
 		controller.parkplatzTabelle();
+		lblInfo.setText("");
 	}
 
 	private void btnEinfuegenActionPerformed(ActionEvent e) 
@@ -169,15 +174,18 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		lblInfo.setText("");
 		controller.fahrzeugRegistrieren(numSchEingabe.getText(),(String) boxTyp.getSelectedItem());
 		numSchEingabe.setText("");
+
 		boxTyp.setSelectedIndex(0);
 	}
 
 	private void btnZuruekActionPerformed(ActionEvent e) 
 	{
-		controller.propertyChange("Zuruck");;
+		numSchEingabe.setText("");
+		controller.propertyChange("Zuruck");
+		lblInfo.setText("");
 	}
 
-	private void btnLöschenActionPerformed(ActionEvent e) 
+	private void btnLoeschenActionPerformed(ActionEvent e)
 	{
 		controller.loeschen(numSchEingabe.getText(), (String) boxTyp.getSelectedItem());
 		numSchEingabe.setText("");
@@ -193,27 +201,41 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) 
 	{
-		if(evt.getPropertyName().equals("FailCheck"))
-		{
-			String numSchild = (String) evt.getNewValue();
-			
-			lblInfo.setText("Das Nummernschild '"+numSchild+"' hat ein falsches Format.");
-		}
-		else if(evt.getPropertyName().equals("Regist"))
-		{
-			String[] pos = (String[]) evt.getNewValue();
-			
-			lblInfo.setText("Das "+pos[1]+" '"+pos[0]+"' wurde registriert");
-		}
-		else if(evt.getPropertyName().equals("Loeschen"))
-		{
-			String[] pos = (String[]) evt.getNewValue();
-			lblInfo.setText("Das "+pos[1]+" '"+pos[0]+"' wurde gelöscht");
-		}
-		else if(evt.getPropertyName().equals("LoeschenFail"))
-		{
-			String[] pos = (String[]) evt.getNewValue();
-			lblInfo.setText("Das "+pos[1]+" '"+pos[0]+"' ist nicht registriert");
-		}
+        switch (evt.getPropertyName())
+        {
+            case "FailCheck" ->
+            {
+                String numSchild = (String) evt.getNewValue();
+
+                lblInfo.setText("Das Nummernschild '" + numSchild + "' hat ein falsches Format.");
+            }
+            case "Regist" ->
+            {
+                String[] pos = (String[]) evt.getNewValue();
+
+                lblInfo.setText("Das " + pos[1] + " '" + pos[0] + "' wurde registriert.");
+            }
+			case "Vorhanden" ->
+			{
+				String[] pos = (String[]) evt.getNewValue();
+
+				lblInfo.setText("Das " + pos[1] + " '" + pos[0] + "' ist bereits registriert.");
+			}
+            case "Loeschen" ->
+            {
+                String[] pos = (String[]) evt.getNewValue();
+                lblInfo.setText("Das " + pos[1] + " '" + pos[0] + "' wurde gelöscht");
+            }
+            case "LoeschenFail" ->
+            {
+                String[] pos = (String[]) evt.getNewValue();
+                lblInfo.setText("Das " + pos[1] + " '" + pos[0] + "' ist nicht registriert.");
+            }
+            case "Verboten" ->
+            {
+                String nummernschild = (String) evt.getNewValue();
+                lblInfo.setText("Verboten! Das Fahrzeug " + nummernschild + " muss erst ausgecheckt werden.");
+            }
+        }
 	}
 }

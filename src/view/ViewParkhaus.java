@@ -57,6 +57,7 @@ public class ViewParkhaus implements PropertyChangeListener
 	{
 		controller.addPropertyListener("Alarm", this);
 		controller.addPropertyListener("Fail", this);
+		controller.addPropertyListener("Verlassen",this);
 		controller.addPropertyListener("ZeigePos", this);
 		controller.addPropertyListener("Voll", this);
 		controller.addPropertyListener("Frei", this);
@@ -79,7 +80,7 @@ public class ViewParkhaus implements PropertyChangeListener
 		frame.getContentPane().setLayout(null);
 		frame.setVisible(true);
 		
-		JLabel lblUeberschrift = new JLabel("Parkhaus Simulator 1.0");
+		JLabel lblUeberschrift = new JLabel("Parkhaus Simulator 2.0");
 		lblUeberschrift.setFont(new Font("Tahoma", Font.BOLD, 18));
 		lblUeberschrift.setBounds(290, 30, 220, 20);
 		frame.getContentPane().add(lblUeberschrift);
@@ -185,11 +186,10 @@ public class ViewParkhaus implements PropertyChangeListener
 		lblAnzahFrei.setFont(new Font("Tahoma", Font.BOLD, 14));
 		lblAnzahFrei.setBounds(190, 66, 100, 30);
 		frame.getContentPane().add(lblAnzahFrei);
-		
-		
-		
+
 		tempPanel = (JPanel) frame.getContentPane(); // ContentPane zwischen speichern
-		
+
+
 		adminView = new AdministrationsGui(controller);
 		
 		parkplatzTabelle = new ParkplatzTabelle(controller);
@@ -249,66 +249,80 @@ public class ViewParkhaus implements PropertyChangeListener
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) 
 	{
-		if(evt.getPropertyName().equals("Alarm"))
-		{
-			lblInformation.setText("Ein Auto mit dem selben Nummernschild befindet sich im Parkhaus.");
-			lblInformation_2.setText("Wegfahrsperre wurde aktiviert. Bitte informieren Sie die Polizei!");
-		}
-		else if(evt.getPropertyName().equals("Voll"))
-		{
-			lblInformation.setText("Parkplatz ist voll");
-			lblInformation_2.setText("");
-		}
-		else if(evt.getPropertyName().equals("Fail"))
-		{
-			String numschild = (String) evt.getNewValue();
-			lblInformation_2.setText("Das Fahrzeug '"+numschild+"' befindet sich nicht im Parkhaus.");
-			lblInformation.setText("");
-		}
-		else if(evt.getPropertyName().equals("ZeigePos"))
-		{
-			String[] pos = new String[4];
-			pos =(String[]) evt.getNewValue();
-			lblInformation.setText("Der Parkplatz vom "+pos[2]+" '"+pos[3]+"' befindet sich auf der Etage "+pos[0]+" auf Platz "+pos[1]);
-			lblInformation_2.setText("");
-		}
-		else if(evt.getPropertyName().equals("Frei"))
-		{
-			int frei = 0;
-			frei = (int) evt.getNewValue();
-			lblAnzahFrei.setText(""+frei);
-		}
-		
-		else if(evt.getPropertyName().equals("FailCheck"))
-		{
-			String numSchild = (String) evt.getNewValue();
-			lblInformation_2.setText("Falsche Eingabe. Das Nummernschild '"+numSchild+"' hat ein falsches Format. ");
-		}
-		else if(evt.getPropertyName().equals("Zuruck"))
-		{
-			frame.setBounds(300,100,800,400);
-			lblInformation_2.setText("");
-			frame.setContentPane(tempPanel);
-		}
-		else if(evt.getPropertyName().equals("PanelTabelle"))
-		{
-			frame.setBounds(300,100,590,590);
-			lblInformation_2.setText("");
-			frame.setContentPane(parkplatzTabelle);
-		}
-		else if(evt.getPropertyName().equals("ZuruckAdmin"))
-		{
-			frame.setBounds(300,100,650,410);
-			lblInformation.setText("");
-			lblInformation_2.setText("");
-			frame.setContentPane(adminView);
-		}
-		else if(evt.getPropertyName().equals("PanelTabelleAuto"))
-		{
-			frame.setBounds(300,100,590,590);
-			lblInformation_2.setText("");
-			frame.setContentPane(autoTabelle);
-		}
+        switch (evt.getPropertyName())
+        {
+            case "Alarm" ->
+            {
+                lblInformation.setText("Ein Auto mit dem selben Nummernschild befindet sich im Parkhaus.");
+                lblInformation_2.setText("Wegfahrsperre wurde aktiviert. Bitte informieren Sie die Polizei!");
+            }
+            case "Voll" ->
+            {
+                lblInformation_2.setText("Parkplatz ist VOLL.");
+                lblInformation.setText("");
+            }
+            case "Fail" ->
+            {
+                String numschild = (String) evt.getNewValue();
+                lblInformation.setText("");
+                lblInformation_2.setText("Das Fahrzeug '" + numschild + "' befindet sich nicht im Parkhaus.");
+
+            }
+            case "Verlassen" ->
+            {
+                String numschild = (String) evt.getNewValue();
+                lblInformation_2.setText("");
+                lblInformation.setText("Das Fahrzeug '" + numschild + "' hat das Parkhaus verlassen.");
+
+            }
+            case "ZeigePos" ->
+            {
+                String[] pos = new String[4];
+                pos = (String[]) evt.getNewValue();
+                lblInformation_2.setText("");
+                lblInformation.setText("Der Parkplatz vom " + pos[2] + " '" + pos[3] + "' befindet sich auf der Etage " + pos[0] + " auf Platz " + pos[1]);
+            }
+            case "Frei" ->
+            {
+                int frei = 0;
+                frei = (int) evt.getNewValue();
+                lblAnzahFrei.setText("" + frei);
+            }
+            case "FailCheck" ->
+            {
+                String numSchild = (String) evt.getNewValue();
+                lblInformation.setText("");
+                lblInformation_2.setText("Falsche Eingabe. Das Nummernschild '" + numSchild + "' hat ein falsches Format. ");
+            }
+            case "Zuruck" ->
+            {
+                frame.setBounds(300, 100, 800, 400);
+                lblInformation_2.setText("");
+                lblInformation.setText("");
+                frame.setContentPane(tempPanel); //wechselt tempPanel =getContentPane entspricht der (hauptpanel)
+            }
+            case "PanelTabelle" ->
+            {
+                frame.setBounds(300, 100, 590, 590);
+                lblInformation_2.setText("");
+                lblInformation.setText("");
+                frame.setContentPane(parkplatzTabelle);
+            }
+            case "ZuruckAdmin" ->
+            {
+                frame.setBounds(300, 100, 650, 410);
+                lblInformation.setText("");
+                lblInformation_2.setText("");
+                frame.setContentPane(adminView);
+            }
+            case "PanelTabelleAuto" ->
+            {
+                frame.setBounds(300, 100, 590, 590);
+                lblInformation_2.setText("");
+                lblInformation.setText("");
+                frame.setContentPane(autoTabelle);
+            }
+        }
 		
 		
 	}
