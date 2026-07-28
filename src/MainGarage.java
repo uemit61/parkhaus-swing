@@ -1,7 +1,10 @@
 import java.awt.EventQueue;
+import java.beans.PropertyChangeSupport;
+import java.io.FileInputStream;
+import java.util.Properties;
 
+import model.*;
 import view.ViewParkhaus;
-import model.Parkhaus;
 import controller.Controller;
 
 
@@ -20,12 +23,33 @@ public class MainGarage {
 		{
 			public void run() 
 			{
-				try {
-					Parkhaus model = new Parkhaus();
-					
-					Controller controller = new Controller(model);
-					
-					ViewParkhaus window = new ViewParkhaus(controller);
+				Properties props = new Properties();
+				try (FileInputStream in = new FileInputStream("config.properties"))
+				{
+
+					 PropertyChangeSupport support = new PropertyChangeSupport(this);
+					 PropertyChangeHandle pch = new PropertyChangeHandle(support);
+
+					props.load(in);
+					 MyConnection myCon = new MyConnection(
+															props.getProperty("db.url"),
+															props.getProperty("db.user"),
+															props.getProperty("db.password")
+														  );
+
+
+					 Fahrzeug modelFahrzeug = new Fahrzeug();
+					 modelFahrzeug.inits(myCon,pch);
+
+					 Garage modelGarage = new Garage();
+					 modelGarage.inits(myCon,pch,modelFahrzeug);
+
+
+					 Parketage modelParketage = new Parketage();
+					 modelParketage.inits(myCon,pch);
+
+					 Controller controller = new Controller(modelFahrzeug,modelGarage,modelParketage,pch);
+					 ViewParkhaus window = new ViewParkhaus(controller);
 					
 					
 				} catch (Exception e) {
