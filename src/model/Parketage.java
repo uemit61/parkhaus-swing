@@ -62,7 +62,7 @@ public class Parketage
      */
     public void freiePlaetze()
     {
-        int  frei= myCon.queryList("Select (select sum(anzahlPlaetze) from parketage ), (select count(*) from garage);",rs->rs.getInt(1) - rs.getInt(2)).getFirst();
+        int  frei= myCon.queryList("Select (select sum(anzahlPlaetze) from parketage ), (select count(*) from garage);",rs->rs.getInt(1) - rs.getInt(2),null).getFirst();
         pch.propertyChange("Frei", frei);
     }
 }
