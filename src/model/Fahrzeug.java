@@ -1,6 +1,5 @@
 package model;
 
-
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -82,21 +81,23 @@ public class Fahrzeug
         boolean retVal = false;
         if (!nummernschild.equals("") && checkNummernschild(nummernschild))
         {
-            String[] pos = new String[2];
-            pos[0] = nummernschild.toUpperCase();
-            pos[1] = typ;
+            String[][] probsList = new String[1][1];
+            String[] probs = new String[2];
+            probs[0] = nummernschild.toUpperCase();
+            probs[1] = typ;
+            probsList[0]=probs;
             int insert =0;
-            insert =myCon.executeUpdate("INSERT INTO parkhaus.fahrzeug (nummernschild, typ) VALUES ('" + pos[0] + "','" + pos[1] + "');");
+            insert =myCon.executeUpdate("INSERT INTO parkhaus.fahrzeug (nummernschild, typ) VALUES (?,?)",probsList);
 
             if(insert !=0)
             {
                 retVal =true;
                 if(admin)
-                    pch.propertyChange("Regist", pos);
+                    pch.propertyChange("Regist", probs);
             }
             else
             {
-                pch.propertyChange("Vorhanden",pos);
+                pch.propertyChange("Vorhanden",probs);
             }
 
 
@@ -136,15 +137,17 @@ public class Fahrzeug
      * Datenbank verhindert denselben Fall über {@code ON DELETE RESTRICT}.
      *
      * @param nummernschild Kennzeichen des zu löschenden Fahrzeugs
-     * @param typ           Fahrzeugtyp; wird nur für die Rückmeldung gebraucht
+     * @param typ           Fahrzeugtyp; steht mit in der WHERE-Bedingung, gelöscht
+     *                      wird also nur, wenn Kennzeichen und Typ zusammenpassen
      */
     public void loescheFahrzeug(String nummernschild, String typ)
     {
             if (!nummernschild.equals("") && checkNummernschild(nummernschild))
             {
-                String[] pos = new String[2];
-                pos[0] = nummernschild.toUpperCase();
-                pos[1] = typ;
+                String[] probs = new String[2];
+                probs[0] = nummernschild.toUpperCase();
+                probs[1] = typ;
+                String[] conInfo = new String[] {probs[0]};
 
 
                 List<Integer> fahrzeug = myCon.queryList
@@ -152,18 +155,20 @@ public class Fahrzeug
               "Select Parketage_etageNr, platzNr, typ " +
                     "from garage join fahrzeug " +
                     "on Fahrzeug_nummernschild = nummernschild " +
-                    "where Fahrzeug_nummernschild = '" + nummernschild + "';",
-            rs->rs.getInt("Parketage_etageNr")
+                    "where Fahrzeug_nummernschild = ?",
+            rs->rs.getInt("Parketage_etageNr"),conInfo
                 );
 
                 if(fahrzeug.isEmpty())
                 {
                     int delete=0;
-                    delete = myCon.executeUpdate("DELETE FROM fahrzeug WHERE (nummernschild = '" + pos[0] + "');");
+                    String[][] probsList =new String[1][1];
+                    probsList[0] = probs;
+                    delete = myCon.executeUpdate("DELETE FROM fahrzeug WHERE nummernschild = ? AND typ = ?", probsList);
                     if(delete !=0)
-                        pch.propertyChange("Loeschen", pos);
+                        pch.propertyChange("Loeschen", probs);
                     else
-                        pch.propertyChange("LoeschenFail", pos);
+                        pch.propertyChange("LoeschenFail", probs);
                 }
                 else
                 {
@@ -186,7 +191,8 @@ public class Fahrzeug
                 (
                     rs.getString("nummernschild"),
                     rs.getString("typ")
-                )
+                ),
+                null
         );
 
         pch.propertyChange("AutoTab", liste_Fahrzeug);
