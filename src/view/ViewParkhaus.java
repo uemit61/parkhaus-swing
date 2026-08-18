@@ -280,7 +280,7 @@ public class ViewParkhaus implements PropertyChangeListener
                 String[] pos = new String[4];
                 pos = (String[]) evt.getNewValue();
                 lblInformation_2.setText("");
-                lblInformation.setText("Der Parkplatz vom " + pos[2] + " '" + pos[3] + "' befindet sich auf der Etage " + pos[0] + " auf Platz " + pos[1]);
+                lblInformation.setText("Der Parkplatz vom " + pos[0] + " '" + pos[1] + "' befindet sich auf der Etage " + pos[2] + " auf Platz " + pos[3]);
             }
             case "Frei" ->
             {
@@ -323,7 +323,5 @@ public class ViewParkhaus implements PropertyChangeListener
                 frame.setContentPane(autoTabelle);
             }
         }
-		
-		
 	}
 }
