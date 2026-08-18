@@ -18,7 +18,7 @@ import java.util.List;
 public class GarageTableModel extends AbstractTableModel
 {
     private List<Garage> garageList;
-    private final String[] columnNames ={"platzNr", "parketage_etageNr","fahrzeug_nummernschild"};
+    private final String[] columnNames ={"parketage_etageNr","platzNr", "fahrzeug_nummernschild"};
 
     public GarageTableModel(List<Garage> garageList)
     {
