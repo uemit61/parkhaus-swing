@@ -74,24 +74,20 @@ public class Fahrzeug
      * @param admin         {@code true} für den Aufruf aus dem Adminbereich, wo der
      *                      Benutzer eine Bestätigung erwartet; bei der Einfahrt
      *                      wird still registriert
-     * @return {@code true}, wenn das Fahrzeug neu eingetragen wurde
      */
-    public boolean fahrzeugRegistrieren(String nummernschild, String typ, boolean admin)
+    public void fahrzeugRegistrieren(String nummernschild, String typ, boolean admin)
     {
-        boolean retVal = false;
-        if (!nummernschild.equals("") && checkNummernschild(nummernschild))
+
+        if (!nummernschild.isEmpty() && checkNummernschild(nummernschild))
         {
-            String[][] probsList = new String[1][1];
             String[] probs = new String[2];
             probs[0] = nummernschild.toUpperCase();
             probs[1] = typ;
-            probsList[0]=probs;
-            int insert =0;
-            insert =myCon.executeUpdate("INSERT INTO parkhaus.fahrzeug (nummernschild, typ) VALUES (?,?)",probsList);
+            int insert;
+            insert =myCon.executeUpdate("INSERT INTO parkhaus.fahrzeug (nummernschild, typ) VALUES (?,?)",(Object[]) probs);
 
             if(insert !=0)
             {
-                retVal =true;
                 if(admin)
                     pch.propertyChange("Regist", probs);
             }
@@ -99,10 +95,8 @@ public class Fahrzeug
             {
                 pch.propertyChange("Vorhanden",probs);
             }
-
-
         }
-        return retVal;
+
     }
 
     /**
@@ -118,7 +112,7 @@ public class Fahrzeug
     {
         boolean retVal = false;
 
-        Pattern p = Pattern.compile("[A-Z]{1,3}-[A-Z]{1,2}\s[1-9][0-9]{1,4}");
+        Pattern p = Pattern.compile("[A-Z]{1,3}-[A-Z]{1,2}\\s[1-9][0-9]{1,4}");
         Matcher m = p.matcher(nummernschild.toUpperCase());
 
         if (m.matches())
@@ -142,40 +136,36 @@ public class Fahrzeug
      */
     public void loescheFahrzeug(String nummernschild, String typ)
     {
-            if (!nummernschild.equals("") && checkNummernschild(nummernschild))
+        if (!nummernschild.isEmpty() && checkNummernschild(nummernschild))
+        {
+            String[] probs = new String[2];
+            probs[0] = nummernschild.toUpperCase();
+            probs[1] = typ;
+
+            List<Integer> fahrzeug = myCon.queryList
+            (
+          "Select Parketage_etageNr, platzNr, typ " +
+                "from garage join fahrzeug " +
+                "on Fahrzeug_nummernschild = nummernschild " +
+                "where Fahrzeug_nummernschild = ?",
+        rs->rs.getInt("Parketage_etageNr"),probs[0]
+            );
+
+            if(fahrzeug.isEmpty())
             {
-                String[] probs = new String[2];
-                probs[0] = nummernschild.toUpperCase();
-                probs[1] = typ;
-                String[] conInfo = new String[] {probs[0]};
-
-
-                List<Integer> fahrzeug = myCon.queryList
-                (
-              "Select Parketage_etageNr, platzNr, typ " +
-                    "from garage join fahrzeug " +
-                    "on Fahrzeug_nummernschild = nummernschild " +
-                    "where Fahrzeug_nummernschild = ?",
-            rs->rs.getInt("Parketage_etageNr"),conInfo
-                );
-
-                if(fahrzeug.isEmpty())
-                {
-                    int delete=0;
-                    String[][] probsList =new String[1][1];
-                    probsList[0] = probs;
-                    delete = myCon.executeUpdate("DELETE FROM fahrzeug WHERE nummernschild = ? AND typ = ?", probsList);
-                    if(delete !=0)
-                        pch.propertyChange("Loeschen", probs);
-                    else
-                        pch.propertyChange("LoeschenFail", probs);
-                }
+                int delete;
+                delete = myCon.executeUpdate("DELETE FROM fahrzeug WHERE nummernschild = ? AND typ = ?", (Object[]) probs);
+                if(delete !=0)
+                    pch.propertyChange("Loeschen", probs);
                 else
-                {
-                    pch.propertyChange("Verboten",nummernschild);
-                }
-
+                    pch.propertyChange("LoeschenFail", probs);
             }
+            else
+            {
+                pch.propertyChange("Verboten",nummernschild);
+            }
+
+        }
     }
 
     /**
@@ -191,8 +181,7 @@ public class Fahrzeug
                 (
                     rs.getString("nummernschild"),
                     rs.getString("typ")
-                ),
-                null
+                )
         );
 
         pch.propertyChange("AutoTab", liste_Fahrzeug);
