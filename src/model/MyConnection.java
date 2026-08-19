@@ -81,15 +81,12 @@ public class MyConnection
 
             try(PreparedStatement st = con.prepareStatement(query))
             {
-
-
                 for(String[] params: paramsList)
                 {
                     setPreparedStatments(params,st);
                     if(st.executeUpdate() !=0)
                         retVal++;
                 }
-
                 con.commit();
             }
             catch (SQLException e)
@@ -97,19 +94,23 @@ public class MyConnection
                 System.err.print("Fehler executeUpdate(): "+e);
                 retVal=0; // retVal wieder zurücksetzen, weil durch den Abbruch nichts geschrieben wurde
                 con.rollback();
+                throw e; // Weiterwerfen, damit der äußere Block Bescheid weiß
             }
-
         }
         catch(SQLException e)
         {
-            // Technische Ursache ausgeben. Fachlich deuten koennen nur die Modelle:
-            // ein doppeltes Kennzeichen meldet Fahrzeug als "Vorhanden" an die View.
+            // Technische Ursache ausgeben. Fachlich deuten können nur die Modelle:
+            // Ein doppeltes Kennzeichen meldet Fahrzeug als "Vorhanden" an die View.
             System.out.println("Update fehlgeschlagen: " + e.getMessage());
         };
 
         return retVal;
     }
 
+    public int executeUpdate(String query,Object... params)
+    {
+
+    }
 
     /**
      * Führt eine Abfrage aus und wandelt jede Ergebniszeile mit dem übergebenen
