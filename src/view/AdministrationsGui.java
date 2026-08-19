@@ -9,7 +9,7 @@ import controller.Controller;
 
 import javax.swing.JTextField;
 import javax.swing.JButton;
-import javax.swing.JList;
+
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -19,6 +19,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JSeparator;
 import javax.swing.border.LineBorder;
 import java.awt.Color;
+import java.io.Serial;
 
 
 /**
@@ -29,14 +30,12 @@ import java.awt.Color;
 public class AdministrationsGui extends JPanel implements PropertyChangeListener
 {
 
-	private static final long serialVersionUID = 1L;
-	private JButton btnLoeschen;
-	private JButton btnEinfuegen;
-	private JButton btnZurueck;
-	private Controller controller =null;
+	@Serial
+    private static final long serialVersionUID = 1L;
+    private Controller controller =null;
 	private JComboBox boxTyp;
-	private JTextField numSchEingabe;
-	private JLabel lblInfo;
+	private final JTextField numSchEingabe;
+	private final JLabel lblInfo;
 	
 	public void addProperty()
 	{
@@ -73,8 +72,8 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		numSchEingabe.setBounds(190, 170, 100, 30);
 		add(numSchEingabe);
 		numSchEingabe.setColumns(10);
-		
-		btnLoeschen = new JButton("Löschen");
+
+        JButton btnLoeschen = new JButton("Löschen");
 		btnLoeschen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) 
 			{
@@ -84,8 +83,8 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		btnLoeschen.setFont(new Font("Tahoma", Font.BOLD, 12));
 		btnLoeschen.setBounds(490, 168, 100, 30);
 		add(btnLoeschen);
-		
-		btnEinfuegen = new JButton("Einfügen");
+
+        JButton btnEinfuegen = new JButton("Einfügen");
 		btnEinfuegen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) 
 			{
@@ -95,8 +94,8 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		btnEinfuegen.setFont(new Font("Tahoma", Font.BOLD, 12));
 		btnEinfuegen.setBounds(337, 168, 100, 30);
 		add(btnEinfuegen);
-		
-		btnZurueck = new JButton("Zurück");
+
+        JButton btnZurueck = new JButton("Zurück");
 		btnZurueck.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) 
 			{
@@ -136,8 +135,8 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 		lblNewLabel_1.setBounds(60, 125, 100, 20);
 		add(lblNewLabel_1);
 		
-		JButton btnParplatzliste = new JButton("Parkplatztabelle");
-		btnParplatzliste.addActionListener
+		JButton btnParkplatzliste = new JButton("Parkplatztabelle");
+		btnParkplatzliste.addActionListener
 		(
 				new ActionListener()
 				{
@@ -147,9 +146,9 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
 			}
 				}
 		);
-		btnParplatzliste.setFont(new Font("Tahoma", Font.BOLD, 12));
-		btnParplatzliste.setBounds(247, 299, 136, 30);
-		add(btnParplatzliste);
+		btnParkplatzliste.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnParkplatzliste.setBounds(247, 299, 136, 30);
+		add(btnParkplatzliste);
 		
 		JSeparator separator = new JSeparator();
 		separator.setBounds(0, 85, 639, 2);
