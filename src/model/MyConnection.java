@@ -49,50 +49,51 @@ public class MyConnection
         }
         catch (SQLException e)
         {
-            throw new RuntimeException("Es konnte keine Verbindung hergestellt werden."+e.getMessage());
+            throw new RuntimeException("Es konnte keine Verbindung hergestellt werden."+e.getMessage(),e);
         }
     }
 
     /**
-     * Führt ein INSERT, UPDATE oder DELETE aus.
+     * Führt dasselbe INSERT, UPDATE oder DELETE für viele Datensätze aus.
      *
-     * <p>Die Werte stehen nicht im SQL-Text, sondern werden als Platzhalter
-     * gesetzt — das schließt SQL-Injection aus und erspart das Quoting je nach
-     * Datentyp.
+     * <p>Die Zeilen werden gesammelt und in einem Rutsch zur Datenbank geschickt,
+     * statt für jede einzeln hin und her zu gehen. Sie laufen in einer
+     * gemeinsamen Transaktion: scheitert eine Zeile, wird keine geschrieben.
      *
-     * <p>Die Methode nimmt bewusst mehrere Parameterzeilen entgegen, damit die
-     * Klasse auch außerhalb dieses Projekts für Massenänderungen taugt.
-     * Committet wird erst, wenn alle Zeilen durchgelaufen sind.
+     * <p>Für einen einzelnen Datensatz ist {@link #executeUpdate(String, Object...)}
+     * die einfachere Wahl.
      *
      * @param query      SQL-Statement mit {@code ?} als Platzhalter, zum Beispiel
      *                   {@code INSERT INTO fahrzeug (nummernschild, typ) VALUES (?,?)}
-     * @param paramsList je Zeile ein Array mit den Werten in der Reihenfolge der
-     *                   Platzhalter; für einen einzelnen Datensatz ein Array der
-     *                   Länge 1
-     * @return Anzahl der geschriebenen Zeilen; 0, wenn nichts geändert wurde oder
-     *         das Statement fehlgeschlagen ist
+     * @param paramsList je Eintrag ein Array mit den Werten einer Zeile, in der
+     *                   Reihenfolge der Platzhalter
+     * @return je Zeile die Anzahl der von ihr geänderten Datensätze; ein leeres
+     *         Array, wenn der Stapel fehlgeschlagen ist und zurückgerollt wurde.
+     *         Einzelne Einträge können {@code Statement.SUCCESS_NO_INFO} sein,
+     *         wenn der Treiber die genaue Zahl nicht meldet
      */
-    public int executeUpdate(String query,String[][] paramsList)
+    public int[] executeBatch(String query,List<Object[]> paramsList)
     {
-        int retVal=0;
+        int[] retVal = new int[0];
         try (Connection con = getConnection())
         {
             con.setAutoCommit(false);
 
             try(PreparedStatement st = con.prepareStatement(query))
             {
-                for(String[] params: paramsList)
+                for(Object[] params: paramsList)
                 {
-                    setPreparedStatments(params,st);
-                    if(st.executeUpdate() !=0)
-                        retVal++;
+                    setParams(st,params);
+                    st.addBatch();
                 }
+
+                retVal = st.executeBatch();
                 con.commit();
             }
             catch (SQLException e)
             {
-                System.err.print("Fehler executeUpdate(): "+e);
-                retVal=0; // retVal wieder zurücksetzen, weil durch den Abbruch nichts geschrieben wurde
+                System.err.print("Fehler executeBatch(): "+e);
+                retVal= new int[0]; // retVal wieder zurücksetzen, weil durch den Abbruch nichts geschrieben wurde
                 con.rollback();
                 throw e; // Weiterwerfen, damit der äußere Block Bescheid weiß
             }
@@ -102,14 +103,57 @@ public class MyConnection
             // Technische Ursache ausgeben. Fachlich deuten können nur die Modelle:
             // Ein doppeltes Kennzeichen meldet Fahrzeug als "Vorhanden" an die View.
             System.out.println("Update fehlgeschlagen: " + e.getMessage());
-        };
+        }
 
         return retVal;
     }
 
+    /**
+     * Führt ein INSERT, UPDATE oder DELETE für einen einzelnen Datensatz aus.
+     *
+     * <p>Die Werte stehen nicht im SQL-Text, sondern werden als Platzhalter
+     * gesetzt — das schließt SQL-Injection aus und erspart das Quoting je nach
+     * Datentyp.
+     *
+     * <p>Scheitert das Statement, wird zurückgerollt und 0 gemeldet. Die
+     * Rückgabezahl ist damit die einzige Rückmeldung an die Modelle: dass ein
+     * Kennzeichen schon vorhanden ist, erkennt {@code Fahrzeug} daran, dass 0
+     * zurückkommt.
+     *
+     * @param query  SQL-Statement mit {@code ?} als Platzhalter, zum Beispiel
+     *               {@code DELETE FROM fahrzeug WHERE nummernschild = ?}
+     * @param params die Werte für die Platzhalter in ihrer Reihenfolge, typgerecht
+     *               übergeben — eine Platznummer als {@code int}, nicht als Text
+     * @return Anzahl der geänderten Zeilen; 0, wenn nichts geändert wurde oder das
+     *         Statement fehlgeschlagen ist
+     */
     public int executeUpdate(String query,Object... params)
     {
+        int retVal=0;
+        try (Connection con = getConnection())
+        {
+            con.setAutoCommit(false);
 
+            try(PreparedStatement st = con.prepareStatement(query))
+            {
+                setParams(st,params);
+                retVal = st.executeUpdate();
+            }
+            catch (SQLException e)
+            {
+                System.err.print("Fehler executeUpdate(): "+e);
+                retVal=0; // retVal wieder zurücksetzen, weil durch den Abbruch nichts geschrieben wurde
+                con.rollback();
+                throw e; // Weiterwerfen, damit der äußere Block Bescheid weiß
+            }
+        }
+        catch (SQLException e)
+        {
+            // Technische Ursache ausgeben. Fachlich deuten können nur die Modelle:
+            // Ein doppeltes Kennzeichen meldet Fahrzeug als "Vorhanden" an die View.
+            System.out.println("Update fehlgeschlagen: " + e.getMessage());
+        }
+        return retVal;
     }
 
     /**
@@ -123,18 +167,18 @@ public class MyConnection
      * @param query  SQL-SELECT, Werte als {@code ?} eingesetzt, zum Beispiel
      *               {@code Select * from garage where Fahrzeug_nummernschild = ?}
      * @param mapper wandelt eine einzelne Zeile in ein Objekt um
-     * @param params die Werte für die Platzhalter in ihrer Reihenfolge, oder
-     *               {@code null}, wenn die Abfrage ohne Platzhalter auskommt
+     * @param params die Werte für die Platzhalter in ihrer Reihenfolge; bei einer
+     *               Abfrage ohne Platzhalter einfach weglassen
      * @return Liste der umgewandelten Zeilen; leer, wenn die Abfrage nichts
      *         geliefert hat oder fehlgeschlagen ist
      */
-    public <T> List<T> queryList(String query,RowMapper<T> mapper,String[] params)
+    public <T> List<T> queryList(String query,RowMapper<T> mapper,Object... params)
     {
         List<T> retVal = new ArrayList<>();
         try(Connection con= getConnection();PreparedStatement st = con.prepareStatement(query))
         {
                 if(params !=null)
-                    setPreparedStatments(params,st);
+                    setParams(st, params);
 
                 ResultSet rs = st.executeQuery();
                 while(rs.next())
@@ -147,46 +191,30 @@ public class MyConnection
             System.out.println("Fehler beim ausführen von queryList(...): "+e);
         }
         return retVal;
-
-
     }
 
     /**
-     * Setzt die Werte in die Platzhalter des Statements ein. Lässt sich ein Wert
-     * als ganze Zahl lesen, wird er als Zahl gesetzt, sonst als Text — die
-     * Aufrufer müssen den Datentyp dadurch nicht selbst mitliefern.
+     * Setzt die Werte in die Platzhalter des Statements ein.
      *
-     * <p>JDBC zählt die Platzhalter ab 1, das Array ab 0; der Zähler läuft
-     * deshalb versetzt mit.
+     * <p>{@code setObject} erkennt den Datentyp am übergebenen Objekt selbst: ein
+     * {@code Integer} geht als Zahl zur Datenbank, ein {@code String} als Text.
+     * Die Aufrufer müssen den Typ deshalb nicht mitliefern, und ein Text, der wie
+     * eine Zahl aussieht, bleibt Text — eine Postleitzahl wie "01067" behält ihre
+     * führende Null.
      *
-     * <p>Die Typerkennung ist eine Annahme, keine Angabe: ein Text, der wie eine
-     * Zahl aussieht, verliert seine führenden Nullen. Für dieses Projekt
-     * unkritisch, bei Wiederverwendung zu beachten.
+     * <p>JDBC zählt die Platzhalter ab 1, das Array ab 0; der Zähler läuft deshalb
+     * versetzt mit.
      *
-     * @param params die Werte in der Reihenfolge der Platzhalter
      * @param st     das vorbereitete Statement, dessen Platzhalter gefüllt werden
+     * @param params die Werte in der Reihenfolge der Platzhalter
      * @throws SQLException wenn ein Wert nicht gesetzt werden kann, etwa weil mehr
      *         Werte übergeben wurden als das Statement Platzhalter hat
      */
-    private void setPreparedStatments(String[] params, PreparedStatement st) throws SQLException
+    private void setParams(PreparedStatement st,Object... params) throws SQLException
     {
-        int i=1;
-
-        int number;
-        for(String param: params)
+        for (int i = 0; i < params.length; i++)
         {
-            //Es wird geprüft was für ein Typ der String beinhaltet und dementsprechend wird geparst,
-            // und typgerecht eingefügt
-            try // prüfung ob eine Zahl int ist
-            {
-                number=Integer.parseInt(param);
-                st.setInt(i,number);
-            }
-            catch (NumberFormatException e)
-            {
-                st.setString(i,param);
-            }
-            i++;
+            st.setObject(i+1, params[i]);
         }
     }
 
