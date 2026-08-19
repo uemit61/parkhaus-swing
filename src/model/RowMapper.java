@@ -6,7 +6,7 @@ import java.sql.SQLException;
 /**
  * Wandelt eine einzelne Zeile eines {@link java.sql.ResultSet} in ein Objekt um.
  * Als funktionales Interface lässt sich eine Umwandlung direkt als Lambda an
- * {@link MyConnection#queryList(String, RowMapper)} übergeben.
+ * {@link MyConnection#queryList(String, RowMapper,Object...)} übergeben.
  *
  * @param <T> Typ des erzeugten Objekts
  *
@@ -23,7 +23,7 @@ public interface RowMapper<T>
      * @param rs das ResultSet, das bereits auf der zu lesenden Zeile steht
      * @return das gefüllte Objekt
      * @throws SQLException wenn eine Spalte nicht gelesen werden kann; behandelt
-     *         wird die Ausnahme in {@link MyConnection#queryList(String, RowMapper)}
+     *         wird die Ausnahme in {@link MyConnection#queryList(String, RowMapper,Object...)}
      */
     T mapRow(ResultSet rs) throws SQLException;
 }
