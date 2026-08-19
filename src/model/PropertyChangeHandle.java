@@ -14,7 +14,7 @@ import java.beans.PropertyChangeSupport;
  */
 public class PropertyChangeHandle
 {
-    private PropertyChangeSupport support;
+    private final PropertyChangeSupport support;
 
     public PropertyChangeHandle(PropertyChangeSupport support)
     {
