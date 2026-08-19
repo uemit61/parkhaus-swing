@@ -96,9 +96,8 @@ public class Garage
     {
         boolean retVal;
 
-        String[] conInfo = new String[] {nummernschild};
         // Prüfen ob Auto im Parkhaus bereits parkt, wenn ja ...POLIZEI alamieren.
-        retVal= myCon.queryList("Select * from garage where Fahrzeug_nummernschild = ?",rs->rs.getInt(1),conInfo).isEmpty();
+        retVal= myCon.queryList("Select * from garage where Fahrzeug_nummernschild = ?",rs->rs.getInt(1),nummernschild).isEmpty();
 
         if(!retVal)
             pch.propertyChange("Alarm",null);
@@ -122,14 +121,14 @@ public class Garage
 
         if(fahrzeug.checkNummernschild(nummernschild) &&check(nummernschild))
         {
-            String[] conInfo = new String[] {nummernschild};
+
             boolean unbekannt = myCon.queryList(
                     "Select nummernschild from fahrzeug where nummernschild = ?",
-                    rs -> rs.getString("nummernschild"),conInfo).isEmpty();
+                    rs -> rs.getString("nummernschild"),nummernschild).isEmpty();
             if (unbekannt)
                 fahrzeug.fahrzeugRegistrieren(nummernschild,typ,false);
 
-            List<Integer> list = myCon.queryList("Select * from garage order by platzNr", rs -> rs.getInt("platzNr"),null);
+            List<Integer> list = myCon.queryList("Select * from garage order by platzNr", rs -> rs.getInt("platzNr"));
 
             // Ermittlung der kleinsten freien PlatzNummer
             int i = 1; // i entspricht PlatzNr
@@ -141,7 +140,7 @@ public class Garage
                     break;
             }
 
-            List<Parketage> etagen =myCon.queryList("Select * from parketage order by etageNr",rs->new Parketage(rs.getInt("etageNr"),rs.getInt("anzahlPlaetze")),null);
+            List<Parketage> etagen =myCon.queryList("Select * from parketage order by etageNr",rs->new Parketage(rs.getInt("etageNr"),rs.getInt("anzahlPlaetze")));
             int j=0;
 
             int etageNr =0;
@@ -160,9 +159,8 @@ public class Garage
             else
             {
                 int insert = 0;
-                String[][] probsList = {{"" + i, nummernschild.toUpperCase(), "" + etageNr}};
                 // Parkplatz wird zugewiesen
-                insert = myCon.executeUpdate("INSERT INTO garage (platzNr, Fahrzeug_nummernschild, Parketage_etageNr) VALUES (?,?,?)", probsList);
+                insert = myCon.executeUpdate("INSERT INTO garage (platzNr, Fahrzeug_nummernschild, Parketage_etageNr) VALUES (?,?,?)",i,nummernschild.toUpperCase(),etageNr );
 
                 if (insert != 0)
                 {
@@ -187,11 +185,8 @@ public class Garage
     {
         if(fahrzeug.checkNummernschild(nummernschild))
         {
-            String[][] probsList = new String[1][1];
-            String[] probs = new String[1];
-            probs[0]=nummernschild;
-            probsList[0]=probs;
-            int count = myCon.executeUpdate("DELETE FROM parkhaus.garage WHERE (Fahrzeug_nummernschild = ?)", probsList );
+
+            int count = myCon.executeUpdate("DELETE FROM parkhaus.garage WHERE (Fahrzeug_nummernschild = ?)", nummernschild );
 
             if(count !=0)
                 pch.propertyChange("Verlassen", nummernschild);
@@ -215,7 +210,7 @@ public class Garage
     {
         if (fahrzeug.checkNummernschild(nummernschild))
         {
-            String[] conInfo = new String[] {nummernschild};
+
             List<String[]> pos = myCon.queryList
                                 (
                               "Select Parketage_etageNr, platzNr, typ " +
@@ -229,10 +224,10 @@ public class Garage
                                         rs.getString(1),
                                         rs.getString(2),
 
-                                    },conInfo
+                                    },nummernschild
                                 );
             if (!pos.isEmpty())
-                pch.propertyChange("ZeigePos", pos.get(0));
+                pch.propertyChange("ZeigePos", pos.getFirst());
             else
                 pch.propertyChange("Fail", nummernschild);
         }
@@ -250,7 +245,7 @@ public class Garage
                 rs -> new Garage(rs.getInt(
                         "platzNr"),
                         rs.getString("Parketage_etageNr"),
-                        rs.getString("Fahrzeug_nummernschild")),null
+                        rs.getString("Fahrzeug_nummernschild"))
                 );
         pch.propertyChange("TabAn", liste_Garage);
         pch.propertyChange("PanelTabelle", null);
