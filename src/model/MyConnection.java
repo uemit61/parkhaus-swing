@@ -138,7 +138,9 @@ public class MyConnection
             {
                 setParams(st,params);
                 retVal = st.executeUpdate();
+                con.commit();
             }
+
             catch (SQLException e)
             {
                 System.err.print("Fehler executeUpdate(): "+e);
