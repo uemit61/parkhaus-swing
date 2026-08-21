@@ -21,10 +21,14 @@ Swing-Anwendung zur Verwaltung eines Parkhauses mit MySQL-Datenbank.
 - **Observer-Muster** über `PropertyChangeSupport`: das Model meldet Änderungen
   an die View, ohne sie zu kennen. `PropertyChangeHandle` kapselt den Support,
   damit alle Modelle über denselben Kanal melden
-- **JDBC/MySQL** über `MyConnection`: jede Methode öffnet ihre eigene Verbindung
-  per try-with-resources und schließt sie garantiert wieder. `queryList()` nimmt
-  einen `RowMapper` (funktionales Interface) entgegen und liefert fertige
-  Objektlisten — das `ResultSet` verlässt die Model-Schicht nicht
+- **JDBC/MySQL** über `MyConnection`: alle Werte gehen als Platzhalter in ein
+  `PreparedStatement`, im Projekt steht kein zusammengesetztes SQL mehr. Jede
+  Methode öffnet ihre eigene Verbindung per try-with-resources und schließt sie
+  garantiert wieder; Schreibzugriffe laufen in einer Transaktion und rollen bei
+  einem Fehler zurück. `executeUpdate()` schreibt einen Datensatz,
+  `executeBatch()` sammelt viele und schickt sie in einer Übertragung.
+  `queryList()` nimmt einen `RowMapper` (funktionales Interface) entgegen und
+  liefert fertige Objektlisten — das `ResultSet` verlässt die Model-Schicht nicht
 - **Eigene `AbstractTableModel`-Implementierungen** für die beiden Tabellen:
   `getValueAt()` ermittelt den passenden Getter per **Reflection** aus dem
   Spaltennamen, eine neue Spalte braucht deshalb nur einen Eintrag im
@@ -41,7 +45,12 @@ src/
 ├── controller/
 │   └── Controller.java          setzt die Anwendungsfälle zusammen, bleibt DB-frei
 ├── model/
-│   ├── MyConnection.java        Verbindungsaufbau, executeUpdate, queryList
+│   ├── entity/                  reine Datenklassen, eine je Tabelle
+│   ├── dao/                     das SQL, eine Klasse je Tabelle
+│   ├── service/                 Fachlogik und Meldungen an die View
+│   ├── db/                      Verbindungsaufbau, Platzhalter, Transaktionen
+│   ├── event/                   Ereignis-Kanal zwischen Model und View
+│   ├── MyConnection.java        Verbindung, executeUpdate, executeBatch, queryList
 │   ├── RowMapper.java           funktionales Interface: ResultSet-Zeile → Objekt
 │   ├── PropertyChangeHandle.java gemeinsamer Ereignis-Kanal
 │   ├── Fahrzeug.java            Tabelle fahrzeug + Registrierung/Löschung
@@ -55,6 +64,10 @@ src/
     ├── GarageTableModel.java    TableModel dazu
     └── FahrzeugTableModel.java  TableModel dazu
 ```
+
+Die fünf Unterpakete sind angelegt und in ihrer jeweiligen `package-info.java`
+beschrieben; die Klassen ziehen schrittweise ein. Bis dahin liegen sie weiter
+direkt unter `model`.
 
 ## Datenbank einrichten
 
@@ -131,8 +144,8 @@ es muss erst auschecken.
 
 Bewusst offen gelassen und für eine Folgeversion vorgesehen:
 
-- SQL-Abfragen werden per String-Verkettung gebaut — für den produktiven
-  Einsatz gehören dort `PreparedStatement` mit Platzhaltern hin
+- Die Model-Schicht wird gerade in `entity`, `dao` und `service` aufgeteilt —
+  bis dahin trägt jede Modellklasse Daten, SQL und Fachlogik zugleich
 - Fehler beim Verbindungsaufbau werden auf der Konsole ausgegeben statt in der
   Oberfläche angezeigt
 - Die Fahrzeugtyp-Auswahl arbeitet mit Strings; geplant sind Objekte in der
