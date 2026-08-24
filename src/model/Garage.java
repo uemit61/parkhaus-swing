@@ -120,12 +120,7 @@ public class Garage
     {
 
         if(fahrzeug.checkNummernschild(nummernschild) &&check(nummernschild))
-        {
-
-            boolean unbekannt = myCon.queryList(
-                    "Select nummernschild from fahrzeug where nummernschild = ?",
-                    rs -> rs.getString("nummernschild"),nummernschild).isEmpty();
-            if (unbekannt)
+            {
                 fahrzeug.fahrzeugRegistrieren(nummernschild,typ,false);
 
             List<Integer> list = myCon.queryList("Select * from garage order by platzNr", rs -> rs.getInt("platzNr"));
@@ -210,7 +205,6 @@ public class Garage
     {
         if (fahrzeug.checkNummernschild(nummernschild))
         {
-
             List<String[]> pos = myCon.queryList
                                 (
                               "Select Parketage_etageNr, platzNr, typ " +
