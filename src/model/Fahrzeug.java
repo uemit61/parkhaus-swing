@@ -91,7 +91,7 @@ public class Fahrzeug
                 if(admin)
                     pch.propertyChange("Regist", probs);
             }
-            else
+            else if(admin)
             {
                 pch.propertyChange("Vorhanden",probs);
             }
