@@ -4,7 +4,7 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 
 import controller.Controller;
-import model.Garage;
+import model.entity.Garage;
 
 import javax.swing.JButton;
 import java.awt.Font;
