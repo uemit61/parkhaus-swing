@@ -2,7 +2,8 @@ package controller;
 
 import java.beans.PropertyChangeListener;
 
-import model.*;
+import model.event.PropertyChangeHandle;
+import model.service.*;
 
 
 /**
@@ -12,13 +13,15 @@ import model.*;
  */
 public class Controller 
 {
-	private Fahrzeug modelFahrzeug = null;
-	private Parketage modelParketage = null;
-	private Garage modelGarage = null;
-	private PropertyChangeHandle pch=null;
+	private FahrzeugService modelFahrzeug = null;
+	private ParketageService modelParketage = null;
+	private GarageService modelGarage = null;
+	private PropertyChangeHandle pch;
 
 	//Constructor
-	public Controller(Fahrzeug modelFahrzeug, Garage modelGarage,Parketage modelParketage,PropertyChangeHandle pch)
+
+
+	public Controller(FahrzeugService modelFahrzeug, ParketageService modelParketage, GarageService modelGarage,PropertyChangeHandle pch)
 	{
 		this.modelFahrzeug = modelFahrzeug;
 		this.modelParketage = modelParketage;
