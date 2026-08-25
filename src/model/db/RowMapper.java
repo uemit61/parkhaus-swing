@@ -1,4 +1,6 @@
-package model;
+package model.db;
+
+
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -6,7 +8,7 @@ import java.sql.SQLException;
 /**
  * Wandelt eine einzelne Zeile eines {@link java.sql.ResultSet} in ein Objekt um.
  * Als funktionales Interface lässt sich eine Umwandlung direkt als Lambda an
- * {@link MyConnection#queryList(String, RowMapper,Object...)} übergeben.
+ * {@link model.db.MyConnection#queryList(String, RowMapperObject...)} übergeben.
  *
  * @param <T> Typ des erzeugten Objekts
  *

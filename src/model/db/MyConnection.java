@@ -1,4 +1,4 @@
-package model;
+package model.db;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public class MyConnection
      *         Einzelne Einträge können {@code Statement.SUCCESS_NO_INFO} sein,
      *         wenn der Treiber die genaue Zahl nicht meldet
      */
-    public int[] executeBatch(String query,List<Object[]> paramsList)
+    public int[] executeBatch(String query, List<Object[]> paramsList)
     {
         int[] retVal = new int[0];
         try (Connection con = getConnection())
@@ -158,6 +158,7 @@ public class MyConnection
         return retVal;
     }
 
+
     /**
      * Führt eine Abfrage aus und wandelt jede Ergebniszeile mit dem übergebenen
      * Mapper in ein Objekt um.
@@ -174,19 +175,19 @@ public class MyConnection
      * @return Liste der umgewandelten Zeilen; leer, wenn die Abfrage nichts
      *         geliefert hat oder fehlgeschlagen ist
      */
-    public <T> List<T> queryList(String query,RowMapper<T> mapper,Object... params)
+    public <T> List<T> queryList(String query, RowMapper<T> mapper,Object... params)
     {
         List<T> retVal = new ArrayList<>();
         try(Connection con= getConnection();PreparedStatement st = con.prepareStatement(query))
         {
-                if(params !=null)
-                    setParams(st, params);
+            if(params !=null)
+                setParams(st, params);
 
-                ResultSet rs = st.executeQuery();
-                while(rs.next())
-                {
-                    retVal.add(mapper.mapRow(rs));
-                }
+            ResultSet rs = st.executeQuery();
+            while(rs.next())
+            {
+                retVal.add(mapper.mapRow(rs));
+            }
         }
         catch (SQLException e)
         {
@@ -221,5 +222,4 @@ public class MyConnection
     }
 
 }
-
 
