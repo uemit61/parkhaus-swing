@@ -105,7 +105,7 @@ public class Garage
     }
 
     /**
-     * Lässt ein Fahrzeug einfahren: prüft das Kennzeichen, registriert das Fahrzeug
+     * Lässt ein Fahrzeug einfahren: prüft das Kennzeichen, registriert das Fahrzeug,
      * falls nötig, sucht den kleinsten freien Platz und weist ihn zu.
      *
      * <p>Die Etage steht nicht im Code: die Kapazitäten aus {@code parketage} werden
@@ -120,8 +120,8 @@ public class Garage
     {
 
         if(fahrzeug.checkNummernschild(nummernschild) &&check(nummernschild))
-            {
-                fahrzeug.fahrzeugRegistrieren(nummernschild,typ,false);
+        {
+            fahrzeug.fahrzeugRegistrieren(nummernschild,typ,false);
 
             List<Integer> list = myCon.queryList("Select * from garage order by platzNr", rs -> rs.getInt("platzNr"));
 
