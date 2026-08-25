@@ -3,7 +3,10 @@ import java.beans.PropertyChangeSupport;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-import model.*;
+import model.db.MyConnection;
+import model.event.PropertyChangeHandle;
+import model.service.*;
+import model.dao.*;
 import view.ViewParkhaus;
 import controller.Controller;
 
@@ -30,28 +33,28 @@ public class MainGarage {
 					 PropertyChangeSupport support = new PropertyChangeSupport(this);
 					 PropertyChangeHandle pch = new PropertyChangeHandle(support);
 
-					props.load(in);
+					 props.load(in);
 					 MyConnection myCon = new MyConnection(
 															props.getProperty("db.url"),
 															props.getProperty("db.user"),
 															props.getProperty("db.password")
 														  );
 
+					 FahrzeugDao fahrzeugDao = new FahrzeugDao(myCon);
+					 GarageDao garageDao = new GarageDao(myCon);
+					 ParketageDao parketageDao = new ParketageDao(myCon);
 
-					 Fahrzeug modelFahrzeug = new Fahrzeug();
-					 modelFahrzeug.inits(myCon,pch);
-
-					 Garage modelGarage = new Garage();
-					 modelGarage.inits(myCon,pch,modelFahrzeug);
+					 FahrzeugService fahrzeugService =new FahrzeugService(fahrzeugDao,garageDao,pch);
+					 GarageService garageService = new GarageService(fahrzeugService,pch,parketageDao,garageDao);
+					 ParketageService parketageService = new ParketageService(parketageDao,pch);
 
 
-					 Parketage modelParketage = new Parketage();
-					 modelParketage.inits(myCon,pch);
 
-					 Controller controller = new Controller(modelFahrzeug,modelGarage,modelParketage,pch);
+
+					 Controller controller = new Controller(fahrzeugService,parketageService,garageService,pch);
 					 ViewParkhaus window = new ViewParkhaus(controller);
-					
-					
+
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
