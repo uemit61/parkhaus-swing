@@ -16,8 +16,13 @@ Swing-Anwendung zur Verwaltung eines Parkhauses mit MySQL-Datenbank.
 ## Technik
 
 - **MVC-Architektur** (`model` / `view` / `controller`-Packages)
-- **Eine Model-Klasse pro Datenbanktabelle** (`Fahrzeug`, `Parketage`, `Garage`):
-  jede trägt die Felder ihrer Tabelle und die zugehörige Fachlogik
+- **Geschichtete Model-Schicht**: pro Tabelle eine reine Datenklasse (`entity`),
+  eine Klasse mit ihrem SQL (`dao`) und eine mit der Fachlogik (`service`). Der
+  Controller kennt vom Model nur die Services, SQL steht ausschließlich in den
+  DAOs. Dieselbe Aufteilung wie `@Entity` / Repository / `@Service` in Spring Boot
+- **Konstruktor-Injektion**: jede Klasse bekommt ihre Abhängigkeiten beim
+  Erzeugen. Weil Entitäten und Services getrennt sind, gibt es keine halb
+  gefüllten Objekte mehr — ein nachgereichtes `inits()` braucht niemand
 - **Observer-Muster** über `PropertyChangeSupport`: das Model meldet Änderungen
   an die View, ohne sie zu kennen. `PropertyChangeHandle` kapselt den Support,
   damit alle Modelle über denselben Kanal melden
@@ -46,16 +51,22 @@ src/
 │   └── Controller.java          setzt die Anwendungsfälle zusammen, bleibt DB-frei
 ├── model/
 │   ├── entity/                  reine Datenklassen, eine je Tabelle
+│   │   ├── Fahrzeug.java        Tabelle fahrzeug
+│   │   ├── Garage.java          Tabelle garage
+│   │   └── Parketage.java       Tabelle parketage
 │   ├── dao/                     das SQL, eine Klasse je Tabelle
+│   │   ├── FahrzeugDao.java     eintragen, löschen, alle lesen
+│   │   ├── GarageDao.java       belegen, freigeben, Position, Platznummern
+│   │   └── ParketageDao.java    Etagen lesen, freie Plätze zählen
 │   ├── service/                 Fachlogik und Meldungen an die View
-│   ├── db/                      Verbindungsaufbau, Platzhalter, Transaktionen
-│   ├── event/                   Ereignis-Kanal zwischen Model und View
-│   ├── MyConnection.java        Verbindung, executeUpdate, executeBatch, queryList
-│   ├── RowMapper.java           funktionales Interface: ResultSet-Zeile → Objekt
-│   ├── PropertyChangeHandle.java gemeinsamer Ereignis-Kanal
-│   ├── Fahrzeug.java            Tabelle fahrzeug + Registrierung/Löschung
-│   ├── Parketage.java           Tabelle parketage + freie Plätze
-│   └── Garage.java              Tabelle garage + Ein- und Ausfahrt
+│   │   ├── FahrzeugService.java Registrieren, Löschen, Kennzeichenprüfung
+│   │   ├── GarageService.java   Ein- und Ausfahrt, Positionsabfrage
+│   │   └── ParketageService.java freie Plätze
+│   ├── db/
+│   │   ├── MyConnection.java    Verbindung, executeUpdate, executeBatch, queryList
+│   │   └── RowMapper.java       funktionales Interface: ResultSet-Zeile → Objekt
+│   └── event/
+│       └── PropertyChangeHandle.java  gemeinsamer Ereignis-Kanal
 └── view/
     ├── ViewParkhaus.java        Hauptfenster
     ├── AdministrationsGui.java  Adminbereich
@@ -65,9 +76,10 @@ src/
     └── FahrzeugTableModel.java  TableModel dazu
 ```
 
-Die fünf Unterpakete sind angelegt und in ihrer jeweiligen `package-info.java`
-beschrieben; die Klassen ziehen schrittweise ein. Bis dahin liegen sie weiter
-direkt unter `model`.
+Jedes Unterpaket beschreibt seinen Zweck in einer eigenen `package-info.java`.
+Die Abhängigkeiten laufen nur in eine Richtung: `entity` kennt niemanden,
+`dao` kennt `entity` und `db`, `service` kennt `dao` und `event`, und der
+`controller` kennt vom Model nur `service`.
 
 ## Datenbank einrichten
 
@@ -144,12 +156,11 @@ es muss erst auschecken.
 
 Bewusst offen gelassen und für eine Folgeversion vorgesehen:
 
-- Die Model-Schicht wird gerade in `entity`, `dao` und `service` aufgeteilt —
-  bis dahin trägt jede Modellklasse Daten, SQL und Fachlogik zugleich
-- Fehler beim Verbindungsaufbau werden auf der Konsole ausgegeben statt in der
-  Oberfläche angezeigt
+- Fehler werden auf der Konsole ausgegeben statt in der Oberfläche angezeigt
 - Die Fahrzeugtyp-Auswahl arbeitet mit Strings; geplant sind Objekte in der
   ComboBox
+- Für die Kennzeichenprüfung fehlen noch Tests — als einzige Methode ohne
+  Abhängigkeiten wäre sie der naheliegende Anfang
 
 ## Lizenz
 
