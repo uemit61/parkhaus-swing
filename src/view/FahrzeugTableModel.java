@@ -1,6 +1,6 @@
 package view;
 
-import model.Fahrzeug;
+import model.entity.Fahrzeug;
 
 import javax.swing.table.AbstractTableModel;
 import java.lang.reflect.InvocationTargetException;

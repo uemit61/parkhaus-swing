@@ -1,6 +1,6 @@
 package view;
 
-import model.Garage;
+import model.entity.Garage;
 
 import javax.swing.table.AbstractTableModel;
 import java.lang.reflect.InvocationTargetException;

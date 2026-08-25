@@ -16,7 +16,8 @@ import javax.swing.JTable;
 
 
 import controller.Controller;
-import model.Fahrzeug;
+import model.entity.Fahrzeug;
+
 
 /**
  * @author      Ümit Yildirim <hopes61@icloud.com>
