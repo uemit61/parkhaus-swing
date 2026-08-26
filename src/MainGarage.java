@@ -18,8 +18,8 @@ import controller.Controller;
  * @copyright   Copyright (c) 2024-2026 Ümit Yildirim. Alle Rechte vorbehalten.
  * @license     Diese Datei darf nicht ohne Zustimmung des Autors weitergegeben oder verändert werden.
  */
-public class MainGarage {
-	
+public class MainGarage
+{
 	public static void main(String[] args) 
 	{
 		EventQueue.invokeLater(new Runnable() 
@@ -45,7 +45,7 @@ public class MainGarage {
 					 ParketageDao parketageDao = new ParketageDao(myCon);
 
 					 FahrzeugService fahrzeugService =new FahrzeugService(fahrzeugDao,garageDao,pch);
-					 GarageService garageService = new GarageService(fahrzeugService,pch,parketageDao,garageDao);
+					 GarageService garageService = new GarageService(fahrzeugService,pch,parketageDao,garageDao,fahrzeugDao);
 					 ParketageService parketageService = new ParketageService(parketageDao,pch);
 
 

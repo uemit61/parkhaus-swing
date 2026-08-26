@@ -50,9 +50,9 @@ public class Controller
 		modelParketage.freiePlaetze();
 	}
 	
-	public void verlassen(String nummernschild)
+	public void verlassen(String nummernschild,String typ)
 	{
-		modelGarage.verlassen(nummernschild);
+		modelGarage.verlassen(nummernschild,typ);
 		freiePlaetze();
 	}
 	
@@ -64,6 +64,7 @@ public class Controller
 	public void fahrzeugRegistrieren(String nummernschild,String typ)
 	{
 		//Propertier 'admin' sagt der Methode, dass Sie vom AdminView aufgerufen wurde
+		//Check sagt, ob die Existenz des Fahrzeugs geprüft wurde.
 		modelFahrzeug.fahrzeugRegistrieren(nummernschild,typ,true);
 	}
 	

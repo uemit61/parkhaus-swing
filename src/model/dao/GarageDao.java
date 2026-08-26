@@ -134,16 +134,29 @@ public class GarageDao
     //Delete
 
     /**
-     * Gibt den Parkplatz eines Fahrzeugs frei.
+     * Gibt den Parkplatz eines Fahrzeugs frei, wenn Kennzeichen und Typ zusammen
+     * passen.
+     *
+     * <p>Der Typ steht in {@code fahrzeug}, der Platz in {@code garage} — deshalb
+     * löscht die Abfrage über einen Join und prüft beides in einem Schritt.
      *
      * @param nummernschild Kennzeichen des ausfahrenden Fahrzeugs
+     * @param typ           der Fahrzeugtyp, der zum Kennzeichen registriert sein muss
      * @return {@code true}, wenn ein Platz freigegeben wurde; {@code false}, wenn
-     *         das Fahrzeug gar nicht im Parkhaus stand
+     *         das Fahrzeug nicht im Parkhaus stand oder der Typ nicht passt
      */
-    public boolean deleteByNummernschild(String nummernschild)
+    public boolean deleteByNummernschildAndTyp(String nummernschild,String typ)
     {
         boolean retVal = false;
-        int count = myCon.executeUpdate("DELETE FROM parkhaus.garage WHERE (Fahrzeug_nummernschild = ?)", nummernschild );
+        int count = myCon.executeUpdate
+                (
+            "DELETE g" +
+                    " FROM parkhaus.garage g" +
+                    " JOIN parkhaus.fahrzeug f" +
+                    " ON f.nummernschild = g.Fahrzeug_nummernschild" +
+                    " WHERE f.nummernschild = ? " +
+                    " AND f.typ = ?", nummernschild,typ
+                );
 
         if(count !=0)
             retVal = true;
