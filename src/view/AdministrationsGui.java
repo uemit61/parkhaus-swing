@@ -216,9 +216,9 @@ public class AdministrationsGui extends JPanel implements PropertyChangeListener
             }
 			case "Vorhanden" ->
 			{
-				String[] pos = (String[]) evt.getNewValue();
+				String pos = (String) evt.getNewValue();
 
-				lblInfo.setText("Das " + pos[1] + " '" + pos[0] + "' ist bereits registriert.");
+				lblInfo.setText("Ein Fahrzeug mit dem selben Kennzeichen '" + pos + "' ist bereits registriert.");
 			}
             case "Loeschen" ->
             {

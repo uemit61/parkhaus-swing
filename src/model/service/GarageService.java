@@ -1,6 +1,7 @@
 package model.service;
 
 
+import model.dao.FahrzeugDao;
 import model.entity.Garage;
 import model.entity.Parketage;
 import model.event.PropertyChangeHandle;
@@ -27,6 +28,7 @@ public class GarageService
 {
     private final GarageDao garageDao;
     private final ParketageDao parketageDao;
+    private final FahrzeugDao fahrzeugDao;
     private final PropertyChangeHandle pch;
     private final FahrzeugService fahrzeugService;
 
@@ -37,18 +39,28 @@ public class GarageService
      * @param parketageDao    Zugriff auf die Tabelle {@code parketage}; liefert die
      *                        Kapazitäten für die Etagenzuordnung
      * @param garageDao       Zugriff auf die Tabelle {@code garage}
+     * @param fahrzeugDao     Zugriff auf die Tabelle {@code fahrzeug}; gebraucht für
+     *                        den Abgleich des registrierten Fahrzeugtyps
      */
-    public GarageService(FahrzeugService fahrzeugService, PropertyChangeHandle pch, ParketageDao parketageDao, GarageDao garageDao)
+    public GarageService(FahrzeugService fahrzeugService, PropertyChangeHandle pch, ParketageDao parketageDao, GarageDao garageDao, FahrzeugDao fahrzeugDao)
     {
         this.pch = pch;
         this.parketageDao = parketageDao;
         this.garageDao = garageDao;
         this.fahrzeugService = fahrzeugService;
+        this.fahrzeugDao = fahrzeugDao;
     }
 
     /**
      * Lässt ein Fahrzeug einfahren: prüft das Kennzeichen, registriert das Fahrzeug,
      * falls nötig, sucht den kleinsten freien Platz und weist ihn zu.
+     *
+     * <p>Zweimal geht stattdessen "Alarm" hinaus. Einmal, wenn das Kennzeichen
+     * bereits im Parkhaus steht — dasselbe Fahrzeug kann nicht ein zweites Mal
+     * einfahren. Und einmal, wenn ein bekanntes Kennzeichen mit einem anderen
+     * Fahrzeugtyp erscheint als dem registrierten: dann ist eines von beiden
+     * gefälscht. Ein noch unbekanntes Kennzeichen wird still registriert und fährt
+     * regulär ein.
      *
      * <p>Die Etage steht nicht im Code: die Kapazitäten aus {@code parketage} werden
      * der Reihe nach aufsummiert, bis die gesuchte Platznummer hineinfällt. Reicht
@@ -68,45 +80,60 @@ public class GarageService
             }
             else
             {
-                fahrzeugService.fahrzeugRegistrieren(nummernschild,typ,false);
+                boolean  regist =false;
 
-                List<Integer> platzNrListe = garageDao.findAllPlatzNr();
-                // Die Liste der Platznummern wird durchlaufen, die erste freie Platznummer, wird ausgewählt.
-                int i = 1; // i entspricht PlatzNr
-                for (Integer value : platzNrListe)
+                // Das Auto wird, falls nicht in der DB, registriert.
+                regist = fahrzeugService.fahrzeugRegistrieren(nummernschild,typ,false);
+
+
+                // Das Auto existiert in der DB regist=false, aber der Fahrzeugtyp ist falsch ALARM.
+                if(!regist && !fahrzeugDao.checkTypBy(nummernschild).equals(typ))
                 {
-                    if (value == i)
-                        i++;
-                    else
-                        break;
+                    pch.propertyChange("Alarm", null);
                 }
-
-                List<Parketage> parketageListe = parketageDao.findAllOrderByEtageNr();
-
-                int j=0;
-                int etageNr =0;
-
-                // Um die EtagenNr festzustellen, wird die Anzahl der Plätze pro etage durchlaufen, summiert und mit der PlatzNr
-                // verglichen, da die PlatzNr unabhängig von der Etage inkrementiert werden.
-                for(Parketage e: parketageListe)
+                else
                 {
-                    j=j+e.getAnzahlPlaetze();
-                    if(i<=j)
+
+                    List<Integer> platzNrListe = garageDao.findAllPlatzNr();
+                    // Die Liste der Platznummern wird durchlaufen, die erste freie Platznummer, wird ausgewählt.
+                    int i = 1; // i entspricht PlatzNr
+                    for (Integer value : platzNrListe)
                     {
-                        etageNr= e.getEtageNr();
-                        break;
+                        if (value == i)
+                            i++;
+                        else
+                            break;
+                    }
+
+                    List<Parketage> parketageListe = parketageDao.findAllOrderByEtageNr();
+
+                    int j=0;
+                    int etageNr =0;
+
+                    // Um die EtagenNr festzustellen, wird die Anzahl der Plätze pro etage durchlaufen, summiert und mit der PlatzNr
+                    // verglichen, da die PlatzNr unabhängig von der Etage inkrementiert werden.
+                    for(Parketage e: parketageListe)
+                    {
+                        j=j+e.getAnzahlPlaetze();
+                        if(i<=j)
+                        {
+                            etageNr= e.getEtageNr();
+                            break;
+                        }
+                    }
+
+
+                    Garage garage = new Garage(i,nummernschild.toUpperCase(),etageNr);
+                    if(i>j)
+                        pch.propertyChange("Voll", null);
+                    else if(garageDao.insert(garage))
+                    {
+                        String[] viewInfo = new String[]{typ, nummernschild, "" + etageNr, "" + i};
+                        pch.propertyChange("ZeigePos", viewInfo);
                     }
                 }
 
 
-                Garage garage = new Garage(i,nummernschild.toUpperCase(),etageNr);
-                if(i>j)
-                    pch.propertyChange("Voll", null);
-                else if(garageDao.insert(garage))
-                {
-                    String[] viewInfo = new String[]{typ, nummernschild, "" + etageNr, "" + i};
-                    pch.propertyChange("ZeigePos", viewInfo);
-                }
             }
 
 
@@ -124,13 +151,18 @@ public class GarageService
      * überhaupt im Parkhaus stand, verrät die Anzahl der gelöschten Zeilen — eine
      * eigene Abfrage vorher erübrigt sich dadurch.
      *
+     * <p>Kennzeichen und Typ müssen gemeinsam zum registrierten Fahrzeug passen.
+     * Stimmt der Typ nicht, bleibt der Platz belegt und "Fail" geht an die View —
+     * dieselbe Regel wie bei der Einfahrt.
+     *
      * @param nummernschild Kennzeichen des ausfahrenden Fahrzeugs
+     * @param typ           Fahrzeugtyp aus der Auswahlliste der Oberfläche
      */
-    public void verlassen(String nummernschild)
+    public void verlassen(String nummernschild,String typ)
     {
         if(FahrzeugService.istGueltigesKennzeichen( nummernschild))
         {
-            if(garageDao.deleteByNummernschild(nummernschild))
+            if(garageDao.deleteByNummernschildAndTyp(nummernschild,typ))
                 pch.propertyChange("Verlassen", nummernschild);
             else
                 pch.propertyChange("Fail", nummernschild);

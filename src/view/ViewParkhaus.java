@@ -209,9 +209,6 @@ public class ViewParkhaus implements PropertyChangeListener
 		
 		controller.freiePlaetze();
 	}
-	
-	
-
 
 	//ActionPErformed
 	private void btnCheckinActionPerformed(ActionEvent e)
@@ -225,7 +222,7 @@ public class ViewParkhaus implements PropertyChangeListener
 	{
 		lblInformation.setText("");
 		lblInformation_2.setText("");				
-		controller.verlassen(textnNummerschild.getText());
+		controller.verlassen(textnNummerschild.getText(),(String) boxTyp.getSelectedItem());
 		textnNummerschild.setText("");
 		boxTyp.setSelectedIndex(0);
 	}

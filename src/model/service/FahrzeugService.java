@@ -43,39 +43,55 @@ public class FahrzeugService
     }
 
     /**
-     * Trägt ein Fahrzeug in die Datenbank ein.
+     * Trägt ein Fahrzeug in die Datenbank ein, sofern das Kennzeichen noch nicht
+     * vergeben ist.
      *
-     * <p>Steht das Kennzeichen bereits in der Tabelle, wird nichts eingefügt und
-     * die View über "Vorhanden" benachrichtigt.
+     * <p>Die Rückgabe unterscheidet die beiden Fälle, die von außen gleich
+     * aussehen: neu eingetragen oder schon bekannt. Die Einfahrt braucht genau
+     * das — ein bekanntes Fahrzeug muss anschließend noch gegen den registrierten
+     * Fahrzeugtyp geprüft werden, ein neues nicht.
      *
      * @param nummernschild das Kennzeichen; wird in Großbuchstaben gespeichert
      * @param typ           Fahrzeugtyp, zum Beispiel "Auto"
      * @param admin         {@code true} für den Aufruf aus dem Adminbereich, wo der
      *                      Benutzer eine Bestätigung erwartet; bei der Einfahrt
      *                      wird still registriert
+     * @return {@code true}, wenn das Fahrzeug neu eingetragen wurde; {@code false},
+     *         wenn es bereits registriert war, das Kennzeichen nicht dem Format
+     *         entspricht oder das Einfügen fehlgeschlagen ist
      */
-    public void fahrzeugRegistrieren(String nummernschild, String typ, boolean admin)
+    public boolean fahrzeugRegistrieren(String nummernschild, String typ, boolean admin)
     {
         String[] props = new String[2];
         props[0] = nummernschild.toUpperCase();
         props[1] = typ;
+        boolean retVal = false;
 
         if (!nummernschild.isEmpty())
         {
             if (istGueltigesKennzeichen(nummernschild))
             {
                 Fahrzeug fahrzeug =new Fahrzeug( props[0],props[1]);
-                if (fahrzeugDao.insert(fahrzeug))
+
+                //Wenn die Abfrage von der Administration kommt, wird geprüft, ob es schon registriert ist.
+                if (fahrzeugDao.existsByNummernschild(nummernschild))
+                {
+                    if(admin)
+                        pch.propertyChange("Vorhanden",nummernschild);
+                }
+                else if (fahrzeugDao.insert(fahrzeug))
                 {
                     if (admin)
                         pch.propertyChange("Regist", props);
+
+                    retVal =true;
                 }
-                else
-                    pch.propertyChange("Vorhanden", props);
+
             }
             else
                 pch.propertyChange("FailCheck", nummernschild);
         }
+        return retVal;
     }
 
     /**
