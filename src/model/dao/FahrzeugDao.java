@@ -72,7 +72,49 @@ public class FahrzeugDao
         );
     }
 
+    /**
+     * Prüft, ob ein Kennzeichen bereits registriert ist.
+     *
+     * <p>Die Abfrage liest bewusst nur {@code 1} statt ganzer Zeilen — gefragt ist
+     * allein, ob es einen Treffer gibt.
+     *
+     * @param nummernschild das gesuchte Kennzeichen
+     * @return {@code true}, wenn das Fahrzeug in der Tabelle steht
+     */
+    public boolean existsByNummernschild(String nummernschild)
+    {
 
+        return !myCon.queryList("Select 1 from parkhaus.fahrzeug where nummernschild = ?",
+                rs -> 1, nummernschild).isEmpty();
+    }
+
+    /**
+     * Liest den Fahrzeugtyp, der zu einem Kennzeichen registriert ist.
+     *
+     * <p>Der Service gleicht ihn mit dem Typ ab, den der Benutzer an der Oberfläche
+     * gewählt hat: weichen sie voneinander ab, ist eines der beiden Kennzeichen
+     * gefälscht.
+     *
+     * <p>Liefert die Abfrage nichts — weil das Kennzeichen nicht registriert ist
+     * oder die Datenbank nicht erreichbar war —, kommt {@code "err"} zurück. Dieser
+     * Wert stimmt mit keinem Fahrzeugtyp überein und führt beim Aufrufer deshalb
+     * zum Alarm; ein Ausfall der Datenbank sieht damit aus wie ein gefälschtes
+     * Kennzeichen.
+     *
+     * @param nummernschild das gesuchte Kennzeichen
+     * @return der registrierte Fahrzeugtyp, oder {@code "err"}, wenn keine Zeile
+     *         gelesen werden konnte
+     */
+    public String checkTypBy(String nummernschild)
+    {
+        String retVal = "err";
+        List<String> liste = myCon.queryList("SELECT typ  from parkhaus.fahrzeug where nummernschild = ? ",rs->rs.getString("typ"),nummernschild);
+
+        if(!liste.isEmpty())
+           retVal= liste.getFirst();
+
+        return retVal;
+    }
     //Update
         //wird nicht benötigt
 
@@ -94,7 +136,7 @@ public class FahrzeugDao
         boolean retVal = false;
         int delete;
 
-        delete =myCon.executeUpdate("DELETE FROM fahrzeug WHERE nummernschild = ? AND typ = ?", fahrzeug.getNummernschild(),fahrzeug.getTyp());
+        delete =myCon.executeUpdate("DELETE FROM parkhaus.fahrzeug WHERE nummernschild = ? AND typ = ?", fahrzeug.getNummernschild(),fahrzeug.getTyp());
         if(delete !=0)
             retVal =true;
 
