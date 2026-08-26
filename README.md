@@ -10,6 +10,11 @@ Swing-Anwendung zur Verwaltung eines Parkhauses mit MySQL-Datenbank.
 - Positionsabfrage: auf welcher Etage und welchem Platz steht ein Fahrzeug
 - Prüfung des Kennzeichen-Formats sowie Alarm, wenn ein Kennzeichen ein zweites
   Mal einfahren will
+- **Fahrzeugtyp als Teil der Identität**: ein Kennzeichen allein identifiziert
+  kein Fahrzeug. Erscheint ein bekanntes Kennzeichen mit einem anderen Typ als
+  dem registrierten, wird kein Platz vergeben, sondern Alarm gemeldet — eines
+  von beiden ist gefälscht. Beim Ausfahren müssen Kennzeichen und Typ ebenfalls
+  zusammenpassen
 - Administrations-GUI zum Registrieren und Löschen von Fahrzeugen, mit
   Fahrzeug- und Parkplatz-Tabelle
 
@@ -148,6 +153,10 @@ Voreinstellung.
 Das Kennzeichen muss dem Format `X-XX 1234` entsprechen (1–3 Buchstaben,
 Bindestrich, 1–2 Buchstaben, Leerzeichen, 2–5 Ziffern ohne führende Null).
 
+Der Fahrzeugtyp gehört bei Ein- und Ausfahrt zur Eingabe dazu: Er muss zu dem
+Typ passen, der zum Kennzeichen registriert ist. Weicht er ab, verweigert das
+Parkhaus die Einfahrt beziehungsweise die Ausfahrt.
+
 **Adminbereich** — Fahrzeuge registrieren und löschen sowie beide Tabellen
 einsehen. Ein Fahrzeug, das gerade im Parkhaus steht, lässt sich nicht löschen;
 es muss erst auschecken.
@@ -157,8 +166,15 @@ es muss erst auschecken.
 Bewusst offen gelassen und für eine Folgeversion vorgesehen:
 
 - Fehler werden auf der Konsole ausgegeben statt in der Oberfläche angezeigt
-- Die Fahrzeugtyp-Auswahl arbeitet mit Strings; geplant sind Objekte in der
-  ComboBox
+- **Die Auswahllisten arbeiten mit Strings.** Geplant ist, sie mit Objekten zu
+  füllen statt mit Text: den Fahrzeugtyp als eigenen Typ, und die
+  Kennzeichen-Eingabe als ComboBox, die mit den `Fahrzeug`-Objekten aus der
+  Datenbank bestückt wird. Dann wählt der Benutzer ein Fahrzeug aus, statt ein
+  Kennzeichen abzutippen — Format- und Typprüfung entfallen für diesen Weg,
+  weil beides schon am Objekt hängt
+- Ein Alarm soll künftig erst nach Rückfrage ausgelöst werden („Dieses
+  Kennzeichen ist bereits registriert — Eingabe korrekt?"), damit ein Vertipper
+  nicht sofort als Fälschung behandelt wird
 - Für die Kennzeichenprüfung fehlen noch Tests — als einzige Methode ohne
   Abhängigkeiten wäre sie der naheliegende Anfang
 
