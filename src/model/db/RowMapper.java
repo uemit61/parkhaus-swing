@@ -8,7 +8,7 @@ import java.sql.SQLException;
 /**
  * Wandelt eine einzelne Zeile eines {@link java.sql.ResultSet} in ein Objekt um.
  * Als funktionales Interface lässt sich eine Umwandlung direkt als Lambda an
- * {@link model.db.MyConnection#queryList(String, RowMapperObject...)} übergeben.
+ * {@link model.db.MyConnection#queryList(String, RowMapper, Object...)} übergeben.
  *
  * @param <T> Typ des erzeugten Objekts
  *
