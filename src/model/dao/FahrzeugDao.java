@@ -83,7 +83,6 @@ public class FahrzeugDao
      */
     public boolean existsByNummernschild(String nummernschild)
     {
-
         return !myCon.queryList("Select 1 from parkhaus.fahrzeug where nummernschild = ?",
                 rs -> 1, nummernschild).isEmpty();
     }
