@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  */
 public class FahrzeugService
 {
-    private static final Pattern KENNZEICHEN = Pattern.compile("[A-Z]{1,3}-[A-Z]{1,2}\\s[1-9][0-9]{1,4}");
+    private static final Pattern KENNZEICHEN = Pattern.compile("[A-ZÄÖÜ]{1,3}-[A-Z]{1,2}\\s[1-9][0-9]{0,3}");
     private final FahrzeugDao fahrzeugDao;
     private final GarageDao garageDao;
     private final PropertyChangeHandle pch;
