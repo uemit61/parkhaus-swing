@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * an die View; SQL steht hier keines. Für das Löschen braucht die Klasse auch
  * den {@link GarageDao} — ein geparktes Fahrzeug darf nicht verschwinden.
  *
- * @author      Ümit Yildirim <hopes61@icloud.com>
+ * @author      Ümit Yildirim <uemit611@outlook.de>
  * @copyright   Copyright (c) 2024-2026 Ümit Yildirim. Alle Rechte vorbehalten.
  * @license     Diese Datei darf nicht ohne Zustimmung des Autors weitergegeben oder verändert werden.
  */
