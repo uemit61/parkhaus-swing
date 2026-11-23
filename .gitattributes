@@ -2,3 +2,8 @@
 # einheitlich mit LF-Zeilenenden; beim Auschecken bekommt jedes System seine
 # native Form (Windows: CRLF). Binaerdateien (z. B. .mwb) bleiben unberuehrt.
 * text=auto
+
+# PDFs sind Binärdateien: text=auto erkennt eine PDF ohne Null-Bytes sonst als
+# Text, und die Umwandlung LF -> CRLF beim Auschecken beschädigt sie. Die Regel
+# steht unter * text=auto, weil bei Git die spätere Zeile gewinnt.
+*.pdf binary
